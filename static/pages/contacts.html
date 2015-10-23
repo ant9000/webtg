@@ -1,0 +1,79 @@
+<div ng-controller="ContactsCtrl">
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="list-group">
+                <div ng-repeat="group in groups | orderBy:'subject'"
+                     class="group list-group-item" ng-class="{ active: group.id == current_group }"
+                     ng-click="setGroup(group.id)">
+                  <strong>{{ group.subject || group.id }}</strong>
+                  <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
+                     <button type="button" class="btn btn-default" ng-click="editGroup(group)">
+                       <span class="glyphicon glyphicon-edit" title="Edit group"></span>
+                     </button>
+                  </div>
+                  <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="list-group">
+              <div ng-if="participants.length" ng-repeat="participant in participants" class="group list-group-item">
+                 {{ participant }}
+                 <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
+                    <button type="button" class="btn btn-default" ng-click="messageGroupParticipant(participant)">
+                      <span class="glyphicon glyphicon-comment" title="Send message"></span>
+                    </button>
+                 </div>
+                 <div class="clearfix"></div>
+              </div>
+            </div>
+        </div>
+
+       <div class="col-md-4">
+          <div class="pull-right btn-group" role="group" aria-label="Actions">
+             <button type="button" class="btn btn-primary" ng-click="editGroup({})">
+               <span class="glyphicon glyphicon-plus"></span>
+               Add group
+             </button>
+             <button type="button" class="btn btn-primary" ng-click="refreshGroups()">
+               <span class="glyphicon glyphicon-refresh"></span>
+               Refresh
+             </button>
+          </div>
+          <div class="clearfix"></div>
+       </div>
+    </div>
+
+    <script type="text/ng-template" id="editGroup.html">
+        <div class="modal-header">
+           <h3 ng-if="!group.id" class="modal-title">Add new group</h3>
+           <h3 ng-if="group.id" class="modal-title">Edit group</h3>
+        </div>
+        <div class="modal-body">
+           <form>
+              <input type="hidden" class="form-control" id="group_id" ng-model="group.id" />
+              <div class="form-group">
+                <label for="subject">Group subject</label>
+                <input type="text" class="form-control" id="subject" placeholder="Enter group subject" ng-model="group.subject" required />
+              </div>
+              <div class="form-group" ng-if="group.id">
+                <label for="participants">Participants</label>
+                <textarea class="form-control" id="participants" placeholder="Enter participants, one per line"
+                     ng-model="group.participants" ng-list="&#10;" ng-trim="false" />
+              </div>
+              <div ng-if="group.id" class="checkbox">
+                <label for="leave">
+                  <input type="checkbox" id="leave" ng-model="group.leave" /> Leave group?
+                </label>
+              </div>
+           </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="$close(group)">OK</button>
+            <button class="btn btn-warning" ng-click="$dismiss('cancel')">Cancel</button>
+        </div>
+    </script>
+
+</div>

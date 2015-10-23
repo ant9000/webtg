@@ -1,0 +1,68 @@
+<div ng-controller="MessagesCtrl">
+
+    <div class="row">
+        <div class="col-md-4">
+            <div id="conversations-list" class="list-group">
+                <div ng-repeat="conversation in conversations"
+                     class="conversation list-group-item" ng-class="{ active: conversation.id == current_conversation.id }"
+                     ng-click="setConversation(conversation)">
+                  <div ng-if="conversation.type == 'user'">
+                    <span class="glyphicon" class="glyphicon-user"></span>
+                    <strong>{{ conversation.first_name }} {{ conversation.last_name }}</strong>
+                  </div>
+                  <div ng-if="conversation.type == 'chat'">
+                    <span class="glyphicon" class="glyphicon-menu-hamburger"></span>
+                    <strong>{{ conversation.title }}</strong>
+                  </div>
+                  <p class="time text-right">
+                    <span ng-if="conversation.last_timestamp">{{ conversation.last_timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>
+                  </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div ng-if="current_conversation" ng-repeat="message in messages[current_conversation.id]|orderBy:'date'" id="messages-container">
+                 <div class="bubble" ng-class="{ own: message.out }">
+
+                   <div class="pull-right">
+                     <div>[<span class="time">{{ message.date*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>]</div>
+<!--
+                     <div ng-if="!message.own" class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
+                        <button type="button" class="btn">
+                          <span class="glyphicon glyphicon-check" title="Confirm read" ng-click="messageRead(message.id)"></span>
+                        </button>
+                     </div>
+-->
+                   </div>
+
+                   <div class="pull-left">
+                      <div ng-if="!message.out && message.from.id != current_conversation.id" class="participant">
+                        {{ message.from.first_name }} {{ message.from.last_name }}
+                      </div>
+                      <a ng-if="message.url" href="{{ message.url }}" target="_blank"
+                        ><img ng-if="message.thumb" ng-src="{{ message.thumb }}" /><span ng-bind-html="message.text"></span
+                      ></a>
+                      <span ng-if="!message.url">
+                        <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
+                        <span ng-bind-html="message.text"></span>
+                      </span>
+                   </div>
+
+                   <div class="clearfix"></div>
+                 </div>
+            </div>
+        </div>
+<!--
+        <div class="col-md-4">
+          <div class="pull-right btn-more" role="more" aria-label="Actions">
+             <button type="button" class="btn btn-primary" ng-click="readMore(messages_count)" ng-disabled="messages_count >= messages_db_count">
+               <span class="glyphicon glyphicon-menu-down"></span>
+               More...
+             </button>
+          </div>
+          <div class="clearfix"></div>
+        </div>
+-->
+    </div>
+
+</div>

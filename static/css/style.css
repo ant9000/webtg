@@ -1,6 +1,6 @@
 body {
   padding: 10px 0px;
-  font:1em/1.4 Cambria, Georgia, sans-serif;
+  font: 1.1em/1.5 Cambria, Georgia, sans-serif;
 }
 .navbar { height: 90px; }
 body > .container { padding-bottom: 90px; }
@@ -58,6 +58,7 @@ body > .container { padding-bottom: 90px; }
 .bubble p { font-size: 70%; padding: 0; margin: 0; }
 .bubble .number { font-weight: bold; }
 .bubble img { float: left; margin: 0px 15px; }
+.bubble img.emojione { float: none; margin: 1px; }
 .bubble a { text-decoration: none; }
 .bubble .participant { font-weight: bold; color: #a00; }
 

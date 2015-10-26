@@ -108,6 +108,7 @@ webtgControllers.controller('MainCtrl', [
       angular.forEach(messages, function(v,k){
         if(trackDuplicates[v.id] === undefined){
           trackDuplicates[v.id] = this.push.length;
+          if(v.text){ v.text = emojione.toImage(v.text); }
           this.push(v);
         }
       }, c.messages);

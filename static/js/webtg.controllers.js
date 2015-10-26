@@ -6,63 +6,48 @@ webtgControllers.controller('MainCtrl', [
   '$scope', '$location', '$window', '$interval', 'socket', '$log',
   function($scope, $location, $window, $interval, socket, $log){
     $scope.$location = $location;
+
+    // debugging aids
     $window.socket = socket;
     $window.$scope = $scope;
 
+    // globals
     $scope.username = null;
     $scope.conversations = [];
     $scope.current_conversation = {};
-    $scope.messages = {};
-    $scope.newmessage = {
-      to: '',
-      content: '',
-    }
+    $scope.newmessage = {to: '', content: ''};
 
+    // event handlers
     $scope.$on('connection',function(evt,state){
-      $log.log(state);
       $scope.connection_state = state;
     });
-
     $scope.$on('session.state',function(evt,data){
       if(data.status=='connected'){
         $scope.username = data.username;
         $scope.conversationsList();
-        $interval($scope.statusOnline, 10000);
+        $interval($scope.statusOnline, 30000);
       }else if(data.status=='not authenticated'){
         $scope.username = '';
         $window.location = '/login';
       }
     });
-
     $scope.$on('telegram.dialog_list',function(evt,data){
-      $log.log(data);
       $scope.conversations = data.contents;
-      if(!$scope.current_conversation.id && $scope.conversations.length){
-        $scope.setConversation($scope.conversations[0]);
-      }
+      $scope.validateCurrentConversation();
     });
-
     $scope.$on('telegram.history',function(evt,data){
-      var messages = {};
-      angular.forEach(data.contents, function(v,k){ this[v.id] = v; }, messages);
-      $scope.messages[data.extra.id] = messages;
+      $scope.setMessages(data.extra, data.contents);
     });
-
     $scope.$on('telegram.message',function(evt,data){
-$log.log('telegram.message: ',data);
+      // normalize data, to make message obj compatible with history
       data.from = data.sender;
       data.to   = data.receiver;
       data.out  = data.own;
-      if(!data.peer){
-        data.peer = data.own ? data.receiver : data.sender; 
-      }
-      if(!$scope.messages[data.peer.id]){
-        $scope.messages[data.peer.id] = {};
-        $scope.conversationsList();
-      }
-      $scope.messages[data.peer.id][data.id] = data;
+      if(!data.peer){ data.peer = data.own ? data.receiver : data.sender; }
+      $scope.setMessages(data.peer, [data]);
     });
 
+    // telegram commands
     $scope.statusOnline = function(){
       socket.send({ 'event': 'telegram.status_online' });
     };
@@ -73,25 +58,61 @@ $log.log('telegram.message: ',data);
       socket.send({
         event: 'telegram.history',
         args:  [ $scope.current_conversation.print_name ],
-        extra: { id: $scope.current_conversation.id }
+        extra: $scope.current_conversation
       });
-    }
-    $scope.setConversation = function(conversation, set_to){
-      $scope.current_conversation = conversation;
-      $scope.conversationHistory();
-      if(set_to!==false){
-        $scope.newmessage.to = conversation.print_name;
-        $scope.newmessage.display = (conversation.type == 'user' ? conversation.first_name+' '+conversation.last_name : conversation.title);
-      }
-    }
+    };
     $scope.sendMessage = function(){
       socket.send({
         event: 'telegram.msg',
         args:  [ $scope.newmessage.to, $scope.newmessage.content ],
       });
       $scope.newmessage.content = '';
-    }
+    };
 
+    // controller functions
+    $scope.setConversation = function(conversation, set_to){
+      if($scope.current_conversation.id != conversation.id){
+        $scope.current_conversation = conversation;
+        $scope.conversationHistory();
+      }
+      if(set_to!==false){
+        $scope.newmessage.to = conversation.print_name ? conversation.print_name : conversation.cmd;
+      }
+    };
+    $scope.clearConversation = function(){
+      $scope.current_conversation = {};
+      $scope.newmessage.to = '';
+    };
+    $scope.validateCurrentConversation = function(){
+      var conversation={};
+      if($scope.conversations.length){
+        if($scope.current_conversation.id){
+          angular.forEach($scope.conversations, function(v,k){ if(v.id==$scope.current_conversation.id) conversation=v; });
+        }
+        if(!conversation.id){ conversation = $scope.conversations[0]; }
+        $scope.setConversation(conversation);
+      }else{
+        $scope.clearConversation();
+      }
+    };
+    $scope.setMessages = function(conversation, messages){
+      var c={};
+      angular.forEach($scope.conversations, function(v,k){ if(v.id==conversation.id) c=v; });
+      if(!c.id){
+        c=conversation;
+        $scope.conversationsList();
+      }
+      if(!c.messages){ c.messages = []; }
+      var trackDuplicates = {};
+      angular.forEach(c.messages, function(v,k){ this[v.id] = k; }, trackDuplicates);
+      angular.forEach(messages, function(v,k){
+        if(trackDuplicates[v.id] === undefined){
+          trackDuplicates[v.id] = this.push.length;
+          this.push(v);
+        }
+      }, c.messages);
+      $scope.setConversation(c);
+    };
     // Start communication
     socket.start();
   }
@@ -110,241 +131,3 @@ webtgControllers.controller('ContactsCtrl', [
 
   }
 ]);
-
-/*
-webtgControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log', '$window', function($scope,$location,socket,$log,$window){
-  $scope.$location = $location;
-  
-  function isInside(item,items){
-    var found = false;
-    for(var i=0;!found && i<items.length;i++){
-      found = angular.equals(item,items[i]);
-    }
-    return found;
-  }
-
-  // SESSION INFO
-  $scope.username = null;
-  $scope.$on('connection',function(evt,state){
-    $log.log(state);
-    $scope.connection_state = state;
-  });
-  $scope.$on('session',function(evt,data){
-    $scope.session = data.content;
-    if($scope.session.status=='connected'){
-      $scope.refreshGroups();
-    }else if($scope.session.status=='not authenticated'){
-      $window.location = '/login';
-    }else if($scope.session.status=='logged in'){
-      // TODO
-    }else if($scope.session.status=='error'){
-      // TODO
-    } 
-  });
-
-  // MESSAGING
-  $scope.newmessage = {
-    to: '',
-    display: '',
-    content: '',
-    is_group: false
-  }
-  $scope.sendMessage = function(){
-    socket.send(angular.extend({ type: 'message' }, $scope.newmessage));
-    $scope.newmessage.content = '';
-  }
-
-  // GROUPS
-  $scope.groups = [];
-  $scope.groupIds = {};
-  $scope.current_group = null;
-  $scope.participants = [];
-  function updateGroup(group){
-    var idx = $scope.groupIds[group.id];
-    if(!angular.isDefined(idx)){
-      idx = $scope.groups.length;
-      $scope.groupIds[group.id] = idx;
-      $scope.groups.push({ group_id: group.id, participants: [] });
-    }
-    angular.extend($scope.groups[idx],group);
-
-    if(group.subject){
-      var cidx = $scope.conversationIds[group.id];
-      if(cidx !== undefined){ $scope.conversations[cidx]['display'] = group.subject; }
-    }
-
-    if(group.id == ($scope.current_group || group.id)){ $scope.setGroup(group.id,false); }
-  }
-  $scope.$on('group-list',function(evt,data){
-    $scope.groups = [];
-    $scope.groupIds = {};
-    $scope.current_group = null;
-    $scope.participants = [];
-    var groups = data.content.groups;
-    for(var i=0;i<groups.length;i++){ updateGroup(groups[i]); }
-  });
-  $scope.$on('group',function(evt,data){
-    updateGroup(data.content);
-  });
-  $scope.$on('group-add',function(evt,data){
-    var group = data.content;
-    var idx = $scope.groupIds[group.id];
-    if(angular.isDefined(idx)){
-      $scope.groups[idx].participants = _.union($scope.groups[idx].participants, group.participants);
-      if($scope.current_group == group.id){ $scope.participants = $scope.groups[idx].participants; }
-    }
-  });
-  $scope.$on('group-del',function(evt,data){
-    var group = data.content;
-    var idx = $scope.groupIds[group.id];
-    if(angular.isDefined(idx)){
-      $scope.groups[idx].participants = _.difference($scope.groups[idx].participants, group.participants);
-      if($scope.current_group == group.id){ $scope.participants = $scope.groups[idx].participants; }
-    }
-  });
-  $scope.$on('group-leave',function(evt,data){
-    var group = data.content;
-    var idx = $scope.groupIds[group.id];
-    if(angular.isDefined(idx)){
-      var groups = _.first($scope.groups,idx).concat(_.rest($scope.groups,idx+1));
-      var groupIds = {};
-      angular.forEach($scope.groups,function(group,idx){ groupIds[group.id] = idx; });
-      $scope.groups = groups;
-      $scope.groupIds = groupIds;
-      if($scope.current_group == group.id){
-        if($scope.groups.length){
-          $scope.current_group = $scope.groups[0].id;
-          $scope.participants = $scope.groups[0].participants;
-        }else{
-          $scope.current_group = null;
-          $scope.participants = [];
-        }
-      }
-    }
-  });
-  $scope.setGroup = function(group_id,set_to){
-    var idx = $scope.groupIds[group_id];
-    if(angular.isDefined(idx)){
-      $scope.current_group = group_id;
-      $scope.participants = $scope.groups[idx].participants;
-      if(set_to!==false){
-        $scope.newmessage.to = group_id;
-        $scope.newmessage.display =  $scope.groups[idx].subject || group_id;
-        $scope.newmessage.is_group = true;
-      }
-    }
-  }
-  $scope.refreshGroups = function(){
-    socket.send({ type: 'group', command: 'list' });
-  }
-  $scope.groupInfo = function(group_id){
-    socket.send({ type: 'group', command: 'info', group_id: group_id });
-  }
-
-  // CONVERSATIONS
-  $scope.conversations = [];
-  $scope.conversationIds = {};
-  $scope.current_conversation = null;
-  $scope.messages_count = 0;
-  $scope.messages_db_count = 0;
-  $scope.$on('message',function(evt,data){
-    $log.log('MessagesCtrl',data);
-    var message = data.content;
-    var number = message.own? message.to : message.from;
-    var display = '';
-    if(message.is_group){
-      var group = $scope.groups[$scope.groupIds[number]];
-      if(group && group.subject){ display = group.subject; }
-    }else{
-      if(message.notify){ display = message.notify; }
-    }
-    var idx = $scope.conversationIds[number];
-    if(!angular.isDefined(idx)){
-      idx = $scope.conversations.length;
-      $scope.conversationIds[number] = idx;
-      $scope.conversations.push({ 
-        number: number,
-        is_group: message.is_group,
-        messages: []
-      });
-    }
-    $scope.conversations[idx]['display'] = display;
-    $scope.conversations[idx]['last_timestamp'] = message.timestamp;
-    var messages = $scope.conversations[idx]['messages'];
-    if(!isInside(message,messages)){
-       messages.push(message);
-       $scope.messages_count++;
-    }
-    $scope.setConversation(number,false);
-  });
-  $scope.setConversation = function(number,set_to){
-    var idx = $scope.conversationIds[number];
-    if(angular.isDefined(idx)){
-      $scope.current_conversation = $scope.conversations[idx];
-      if(set_to!==false){
-        $scope.newmessage.to = number;
-        $scope.newmessage.display = $scope.conversations[idx].display;
-        $scope.newmessage.is_group = $scope.conversations[idx].is_group;
-      }
-    }
-  }
-  $scope.$on('message-count',function(evt,data){
-    $log.log('MessagesCtrl',data);
-    $scope.messages_db_count = data.content;
-  });
-
-  // Start communication
-  socket.start();
-}]);
-
-webtgControllers.controller('MessagesCtrl', ['$scope', '$window', 'socket', '$log', function($scope, $window, socket, $log){
-  $scope.messageRead = function(message_id){
-     $window.alert('TODO');
-  };
-  $scope.readMore = function(offset){
-     socket.send({ type: 'messages-page', 'offset': offset });
-  };
-}]);
-
-webtgControllers.controller('GroupsCtrl', ['$scope', '$window', '$modal', 'socket', '$log', function($scope, $window, $modal, socket, $log){
-  $scope.editGroup = function(group){
-    var modalInstance = $modal.open({
-      templateUrl: 'editGroup.html',
-      controller: 'EditGroupCtrl',
-      size: 'sm',
-      resolve: {
-         group: function(){ return angular.copy(group); }
-      }
-    });
-    var initial = angular.copy(group);
-    modalInstance.result.then(function(group) {
-      $log.log('Edit group: ',group, initial);
-      if(group.leave){
-        $log.log('Leaving group: ', group.id);
-        socket.send({ type: 'group', command: 'leave', 'group_id': group.id });
-        return; // no need to change anything else
-      }
-      if(group.subject && (group.subject != initial.subject)){
-        var command = group.id? 'subject' : 'create';
-        socket.send({ type: 'group', 'command': command, 'group_id': group.id, 'subject': group.subject });
-      }
-      if(group.participants && (group.participants != initial.participants)){
-        $log.log('Participants: ', group.participants, 'Initial: ', initial.participants);
-        socket.send({ type: 'group', command: 'participants-set', 'group_id': group.id, 'old': initial.participants, 'new': group.participants });
-      }
-    }, function(){
-      $log.log('Modal dismissed at: ' + new Date());
-    });
-  };
-  $scope.messageGroupParticipant = function(number){
-    $scope.newmessage.to = number;
-    $scope.newmessage.display = '';
-    $scope.newmessage.is_group = false;
-    angular.element('#newmessage-content').focus();
-  };
-}]);
-
-webtgControllers.controller('EditGroupCtrl', function ($scope, $modalInstance, group) {
-  $scope.group = group;
-});
-*/

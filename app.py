@@ -17,6 +17,7 @@ from cli.mail import Mailer
 from DictObject import DictObject
 
 from pytg import Telegram
+from pytg.receiver import Receiver
 from pytg.utils import coroutine
 from pytg.exceptions import ConnectionError
 
@@ -80,10 +81,9 @@ logger = logging.getLogger()
 
 
 tg = Telegram(
-    host="localhost", port=4458,
     telegram=here('tg/bin/telegram-cli'),
     pubkey_file=here('tg/tg-server.pub'),
-    custom_cli_args=['-d', '-L', here('logs/telegram.log')],
+    custom_cli_args=['-d', '-L', here('logs/telegram.log'),'-N'],
 )
 
 def telegram():
@@ -95,17 +95,23 @@ def telegram():
                 msg.event = 'telegram.' + msg.get('event','message')
                 logger.info(msg)
                 for ws in web_clients:
-                    ws.send(json.dumps(msg))
+                    try:
+                        ws.send(json.dumps(msg))
+                    except WebSocketError:
+                        if ws in web_clients:
+                            del web_clients[ws]
         except Exception, e:
-            logger.error('message_listener: %s', e)
+            logger.exception('message_listener: %s', e)
 
-    try:
-        tg.receiver.start()
-        tg.receiver.message(message_listener(tg.sender))
-        logger.error("telegram: connection lost.")
-        tg.receiver.stop()
-    except Exception, e:
-        logger.error('telegram: %s', e)
+    while True:
+        try:
+            tg.receiver.start()
+            tg.receiver.message(message_listener(tg.sender))
+            logger.error("telegram: connection lost.")
+            tg.receiver.stop()
+        except Exception, e:
+            logger.exception('telegram: %s', e)
+        tg.receiver = Receiver()
 
 
 session_opts = {
@@ -229,7 +235,7 @@ def handle_websocket(ws):
                         if type(response) != DictObject:
                             response = DictObject({ 'contents': response })
                     except Exception, e:
-                        logger.error('%s', e)
+                        logger.exception('%s', e)
                 else:
                     logger.error("unknown command '%s'", command)
             else:
@@ -244,6 +250,8 @@ def handle_websocket(ws):
                 ws.send(json.dumps(response))
 
         except WebSocketError:
+            if ws in web_clients:
+                del web_clients[ws]
             break
 
 def webui():

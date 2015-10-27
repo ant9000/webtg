@@ -16,6 +16,8 @@ webtgControllers.controller('MainCtrl', [
     $scope.conversations = [];
     $scope.current_conversation = {};
     $scope.newmessage = {to: '', content: ''};
+    $scope.contacts = [];
+    $scope.current_contact = {};
 
     // event handlers
     $scope.$on('connection',function(evt,state){
@@ -25,6 +27,7 @@ webtgControllers.controller('MainCtrl', [
       if(data.status=='connected'){
         $scope.username = data.username;
         $scope.conversationsList();
+        $scope.contactsList();
         $interval($scope.statusOnline, 30000);
       }else if(data.status=='not authenticated'){
         $scope.username = '';
@@ -34,6 +37,10 @@ webtgControllers.controller('MainCtrl', [
     $scope.$on('telegram.dialog_list',function(evt,data){
       $scope.conversations = data.contents;
       $scope.validateCurrentConversation();
+      var chats = [];
+      angular.forEach(data.contents, function(v,k){ if(v.type=='chat'){ this.push(v); } }, chats);
+      $scope.setContacts(chats);
+      $scope.validateCurrentContact();
     });
     $scope.$on('telegram.history',function(evt,data){
       $scope.setMessages(data.extra, data.contents);
@@ -45,6 +52,10 @@ webtgControllers.controller('MainCtrl', [
       data.out  = data.own;
       if(!data.peer){ data.peer = data.own ? data.receiver : data.sender; }
       $scope.setMessages(data.peer, [data]);
+    });
+    $scope.$on('telegram.contacts_list',function(evt,data){
+      $scope.setContacts(data.contents);
+      $scope.validateCurrentContact();
     });
 
     // telegram commands
@@ -67,6 +78,9 @@ webtgControllers.controller('MainCtrl', [
         args:  [ $scope.newmessage.to, $scope.newmessage.content ],
       });
       $scope.newmessage.content = '';
+    };
+    $scope.contactsList = function(){
+      socket.send({ 'event': 'telegram.contacts_list' });
     };
 
     // controller functions
@@ -116,6 +130,40 @@ webtgControllers.controller('MainCtrl', [
         }
       }, c.messages);
       $scope.setConversation(c);
+    };
+    $scope.setContacts = function(contacts){
+      var trackDuplicates = {};
+      angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, trackDuplicates);
+      angular.forEach(contacts, function(v,k){
+        if(trackDuplicates[v.id] === undefined){
+          trackDuplicates[v.id] = this.push.length;
+          this.push(v);
+        }
+      }, $scope.contacts);
+    };
+    $scope.setContact = function(contact, set_to){
+      if($scope.current_contact.id != contact.id){
+        $scope.current_contact = contact;
+      }
+      if(set_to!==false){
+        $scope.newmessage.to = contact.print_name ? contact.print_name : contact.cmd;
+      }
+    };
+    $scope.clearContact = function(){
+      $scope.current_contact = {};
+      $scope.newmessage.to = '';
+    };
+    $scope.validateCurrentContact = function(){
+      var contact={};
+      if($scope.contacts.length){
+        if($scope.current_contact.id){
+          angular.forEach($scope.contacts, function(v,k){ if(v.id==$scope.current_contact.id) contact=v; });
+        }
+        if(!contact.id){ contact = $scope.contacts[0]; }
+        $scope.setContact(contact);
+      }else{
+        $scope.clearContact();
+      }
     };
     // Start communication
     socket.start();

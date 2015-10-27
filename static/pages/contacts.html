@@ -3,14 +3,24 @@
     <div class="row">
         <div class="col-md-4">
             <div class="list-group">
-                <div ng-repeat="group in groups | orderBy:'subject'"
-                     class="group list-group-item" ng-class="{ active: group.id == current_group }"
-                     ng-click="setGroup(group.id)">
-                  <strong>{{ group.subject || group.id }}</strong>
+                <div ng-repeat="contact in contacts"
+                     class="contact list-group-item" ng-class="{ active: contact.id == current_contact.id }"
+                     ng-click="setContact(contact)">
                   <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                     <button type="button" class="btn btn-default" ng-click="editGroup(group)">
-                       <span class="glyphicon glyphicon-edit" title="Edit group"></span>
+                     <button ng-if="contact.type == 'chat'" type="button" class="btn btn-default" ng-click="editGroup(contact)">
+                       <span class="glyphicon glyphicon-edit" title="Edit Group"></span>
                      </button>
+                     <button ng-if="contact.type == 'user'" type="button" class="btn btn-default" ng-click="editContact(contact)">
+                       <span class="glyphicon glyphicon-edit" title="Edit contact"></span>
+                     </button>
+                  </div>
+                  <div ng-if="contact.type == 'user'">
+                    <span class="glyphicon glyphicon-user"></span>
+                    <strong>{{ contact.first_name }} {{ contact.last_name }}</strong>
+                  </div>
+                  <div ng-if="contact.type == 'chat'">
+                    <span class="glyphicon glyphicon-menu-hamburger"></span>
+                    <strong>{{ contact.title }}</strong>
                   </div>
                   <div class="clearfix"></div>
                 </div>
@@ -19,31 +29,41 @@
 
         <div class="col-md-4">
             <div class="list-group">
-              <div ng-if="participants.length" ng-repeat="participant in participants" class="group list-group-item">
-                 {{ participant }}
-                 <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                    <button type="button" class="btn btn-default" ng-click="messageGroupParticipant(participant)">
-                      <span class="glyphicon glyphicon-comment" title="Send message"></span>
-                    </button>
-                 </div>
-                 <div class="clearfix"></div>
-              </div>
+                <div ng-if="current_contact.members" ng-repeat="member in current_contact.members" class="group list-group-item">
+                    <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
+                        <button type="button" class="btn btn-default" ng-click="messageGroupMember(member)">
+                            <span class="glyphicon glyphicon-comment" title="Send message"></span>
+                        </button>
+                    </div>
+                    <div>
+                        <span class="glyphicon glyphicon-user"></span>
+                        <strong>{{ member.first_name }} {{ member.last_name }}</strong>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+                <div ng-if="!current_contact.members" class="group list-group-item">
+                    <div>
+                        <span class="glyphicon glyphicon-user"></span>
+                        <strong>{{ current_contact.first_name }} {{ current_contact.last_name }}</strong>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
             </div>
         </div>
 
-       <div class="col-md-4">
-          <div class="pull-right btn-group" role="group" aria-label="Actions">
-             <button type="button" class="btn btn-primary" ng-click="editGroup({})">
-               <span class="glyphicon glyphicon-plus"></span>
-               Add group
-             </button>
-             <button type="button" class="btn btn-primary" ng-click="refreshGroups()">
-               <span class="glyphicon glyphicon-refresh"></span>
-               Refresh
-             </button>
-          </div>
-          <div class="clearfix"></div>
-       </div>
+        <div class="col-md-4">
+            <div class="pull-right btn-group" role="group" aria-label="Actions">
+                <button type="button" class="btn btn-primary" ng-click="editContact({})">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    Add contact
+                </button>
+                <button type="button" class="btn btn-primary" ng-click="editGroup({})">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    Add group
+                </button>
+            </div>
+            <div class="clearfix"></div>
+        </div>
     </div>
 
     <script type="text/ng-template" id="editGroup.html">

@@ -283,6 +283,9 @@ def handle_websocket(ws):
                                 last_message = tg.sender.history('%s#%s' % (c.type, c.id), 1)
                                 if len(last_message):
                                     c.last_timestamp = last_message[0].date
+                                if c.type == 'chat':
+                                    info = tg.sender.chat_info('%s#%s' % (c.type, c.id))
+                                    c.update(info)
                         elif command == 'history':
                             for msg in response['contents']:
                                 if msg.get('media',''):

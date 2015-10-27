@@ -13,7 +13,7 @@ body > .container { padding-bottom: 90px; }
 /* http://html-generator.weebly.com/css-speech-bubble-generator.html */
 .bubble {
     position: relative;
-    width: 300px;
+    min-width: 250px;
     min-height: 25px;
     padding: 10px;
     margin-bottom: 20px;
@@ -58,13 +58,13 @@ body > .container { padding-bottom: 90px; }
 .bubble p { font-size: 70%; padding: 0; margin: 0; }
 .bubble .number { font-weight: bold; }
 .bubble img { float: left; margin: 0px 15px; }
-.bubble img.emojione { float: none; margin: 1px; }
+.bubble img.emojione { float: none; margin: 2px; height: 24px; }
 .bubble a { text-decoration: none; }
 .bubble .participant { font-weight: bold; color: #a00; }
+.bubble .btn { margin: 5px; }
 
 .list-group {
   box-shadow: none;
 }
-.btn .emoji { width: 16px; height: 16px; }
 
 .panel-footer a.menu.active { font-weight: bold; }

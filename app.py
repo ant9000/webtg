@@ -36,6 +36,7 @@ def here(path):
     return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
 STATIC = here('static')
 VIEWS  = here('views')
+DOWNLOADS = here('.telegram-cli/downloads')
 
 cfg = Config(here('configuration.ini'))
 try:
@@ -79,12 +80,36 @@ configuration is correct.
 
 logger = logging.getLogger()
 
-
+os.environ['TELEGRAM_HOME'] = here('')
 tg = Telegram(
     telegram=here('tg/bin/telegram-cli'),
     pubkey_file=here('tg/tg-server.pub'),
     custom_cli_args=['-d', '-L', here('logs/telegram.log'),'-N'],
 )
+
+def download_media(sender, msg_id, media_type):
+    if media_type not in [ 'audio', 'document', 'photo', 'video' ]:
+        return {}
+    logger.info('download_media(%s, %s)', msg_id, media_type)
+    cmds = [ ('url', 'load_file' ) ]
+    if media_type in ['document', 'file']:
+        cmds.insert(0, ('thumb', 'load_file_thumb'))
+    data = {}
+    for field, command in cmds:
+        response = None
+        try:
+            response = getattr(sender,command)(msg_id)
+        except Exception, e:
+            logger.exception('%s', e)
+        if response and not response.get('error'):
+            filepath = response.get('result')
+            try:
+                filepath = filepath[filepath.index('/downloads/'):]
+            except ValueError:
+                filepath = ''
+            if filepath:
+                data[field] = filepath
+    return data
 
 def telegram():
     @coroutine
@@ -93,6 +118,9 @@ def telegram():
             while True:
                 msg = (yield) # it waits until the generator has a has message here.
                 msg.event = 'telegram.' + msg.get('event','message')
+                if msg.event == 'telegram.message' and msg.get('media',''):
+                    media = download_media(sender, msg.id, msg.media.type)
+                    msg.media.update(media)
                 logger.info(msg)
                 for ws in web_clients:
                     try:
@@ -121,15 +149,6 @@ session_opts = {
 app = SessionMiddleware(bottle.app(), session_opts)
 web_clients = {}
 
-def check_login(username, password):
-    try:
-        if username != '' and \
-                username == admin_username and \
-                password == admin_password:
-            return True
-    except:
-        pass
-    return False
 
 @bottle.route('/')
 def index():
@@ -150,7 +169,9 @@ def login():
     if bottle.request.method == 'POST':
         username = bottle.request.forms.get('username')
         password = bottle.request.forms.get('password')
-        if check_login(username, password):
+        if username != '' and \
+                username == admin_username and \
+                password == admin_password:
             session = bottle.request.environ.get('beaker.session')
             session['username'] = username
             bottle.redirect('/')
@@ -171,6 +192,16 @@ def send_static(filename=''):
     if not filename:
         filename = 'index.html'
     return bottle.static_file(filename, root=STATIC)
+
+
+@bottle.route('/downloads/<filename:path>')
+def send_static(filename):
+    session = bottle.request.environ.get('beaker.session', {})
+    username = session.get('username', 'anonymous')
+    if username == 'anonymous' and \
+            bottle.request.remote_addr != '127.0.0.1':
+        bottle.abort(401, 'Unauthorized.')
+    return bottle.static_file(filename, root=DOWNLOADS)
 
 
 @bottle.route('/websocket', apply=[websocket])
@@ -205,14 +236,16 @@ def handle_websocket(ws):
     while True:
         try:
             msg = ws.receive()
-            if msg is not None:
-                logger.debug('%s@%s %s', username, bottle.request.remote_addr, msg)
+            if msg is None:
+                continue
+
+            logger.debug('%s@%s %s', username, bottle.request.remote_addr, msg)
 
             data = DictObject()
             try:
                 data = DictObject(json.loads(msg))
-            except:
-                logger.error('message is not valid json data')
+            except Exception, e:
+                logger.exception('message is not valid json data: %s', e)
                 continue
             logger.debug('<%s', data)
 
@@ -247,12 +280,18 @@ def handle_websocket(ws):
                     response.args = data.args
                 if data.get('extra'):
                     response.extra = data.extra
+                if data.event == 'telegram.history':
+                    for msg in response['contents']:
+                        if msg.get('media',''):
+                            media = download_media(tg.sender, msg.id, msg.media.type)
+                            msg.media.update(media)
                 ws.send(json.dumps(response))
 
         except WebSocketError:
             if ws in web_clients:
                 del web_clients[ws]
             break
+
 
 def webui():
     bottle.run(

@@ -109,6 +109,7 @@ webtgControllers.controller('MainCtrl', [
         if(trackDuplicates[v.id] === undefined){
           trackDuplicates[v.id] = this.push.length;
           if(v.text){ v.text = emojione.toImage(v.text); }
+          if(v.media && v.media.caption){ v.media.caption = emojione.toImage(v.media.caption); }
           this.push(v);
         }
       }, c.messages);

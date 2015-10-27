@@ -32,11 +32,13 @@
                       <div ng-if="!message.out && message.from.id != current_conversation.id" class="participant">
                         {{ message.from.first_name }} {{ message.from.last_name }}
                       </div>
-                      <a ng-if="message.url" href="{{ message.url }}" target="_blank"
-                        ><img ng-if="message.thumb" ng-src="{{ message.thumb }}" /><span ng-bind-html="message.text"></span
-                      ></a>
-                      <span ng-if="!message.url">
-                        <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
+                      <a ng-if="message.media.url" href="{{ message.media.url }}" target="_blank">
+                        <img ng-if="message.media.thumb" ng-src="{{ message.media.thumb }}" /><span ng-bind-html="message.media.caption"></span>
+                        <button ng-if="!message.media.thumb && !message.media.caption" type="button" class="btn btn-default">
+                            <span class="glyphicon glyphicon-download" title="{{ message.media.type }}"></span>
+                        </button>
+                      </a>
+                      <span ng-if="!message.media.url">
                         <span ng-bind-html="message.text"></span>
                       </span>
                    </div>

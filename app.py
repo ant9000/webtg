@@ -277,6 +277,17 @@ def handle_websocket(ws):
                         logger.debug('>%s', response)
                         if type(response) != DictObject:
                             response = DictObject({ 'contents': response })
+
+                        if command == 'dialog_list':
+                            for c in response['contents']:
+                                last_message = tg.sender.history('%s#%s' % (c.type, c.id), 1)
+                                if len(last_message):
+                                    c.last_timestamp = last_message[0].date
+                        elif command == 'history':
+                            for msg in response['contents']:
+                                if msg.get('media',''):
+                                    media = download_media(tg.sender, msg.id, msg.media.type)
+                                    msg.media.update(media)
                     except Exception, e:
                         logger.exception('%s', e)
                 else:
@@ -290,11 +301,6 @@ def handle_websocket(ws):
                     response.args = data.args
                 if data.get('extra'):
                     response.extra = data.extra
-                if data.event == 'telegram.history':
-                    for msg in response['contents']:
-                        if msg.get('media',''):
-                            media = download_media(tg.sender, msg.id, msg.media.type)
-                            msg.media.update(media)
                 ws.send(json.dumps(response))
 
         except WebSocketError:

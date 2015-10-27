@@ -103,11 +103,13 @@ webtgControllers.controller('MainCtrl', [
         $scope.conversationsList();
       }
       if(!c.messages){ c.messages = []; }
+      if(!c.last_timestamp){ c.last_timestamp = 0; }
       var trackDuplicates = {};
       angular.forEach(c.messages, function(v,k){ this[v.id] = k; }, trackDuplicates);
       angular.forEach(messages, function(v,k){
         if(trackDuplicates[v.id] === undefined){
           trackDuplicates[v.id] = this.push.length;
+          if(v.date > c.last_timestamp){ c.last_timestamp = v.date; }
           if(v.text){ v.text = emojione.toImage(v.text); }
           if(v.media && v.media.caption){ v.media.caption = emojione.toImage(v.media.caption); }
           this.push(v);

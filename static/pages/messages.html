@@ -6,17 +6,18 @@
                 <div ng-repeat="conversation in conversations"
                      class="conversation list-group-item" ng-class="{ active: conversation.id == current_conversation.id }"
                      ng-click="setConversation(conversation)">
+                  <div class="time pull-right">
+                    <span ng-if="conversation.last_timestamp">{{ conversation.last_timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>
+                  </div>
                   <div ng-if="conversation.type == 'user'">
-                    <span class="glyphicon" class="glyphicon-user"></span>
+                    <span class="glyphicon glyphicon-user"></span>
                     <strong>{{ conversation.first_name }} {{ conversation.last_name }}</strong>
                   </div>
                   <div ng-if="conversation.type == 'chat'">
-                    <span class="glyphicon" class="glyphicon-menu-hamburger"></span>
+                    <span class="glyphicon glyphicon-menu-hamburger"></span>
                     <strong>{{ conversation.title }}</strong>
                   </div>
-                  <p class="time text-right">
-                    <span ng-if="conversation.last_timestamp">{{ conversation.last_timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>
-                  </p>
+                  <div class="clearfix"></div>
                 </div>
             </div>
         </div>

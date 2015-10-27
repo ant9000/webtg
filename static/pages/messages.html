@@ -34,10 +34,11 @@
                         {{ message.from.first_name }} {{ message.from.last_name }}
                       </div>
                       <a ng-if="message.media.url" href="{{ message.media.url }}" target="_blank">
-                        <img ng-if="message.media.thumb" ng-src="{{ message.media.thumb }}" /><span ng-bind-html="message.media.caption"></span>
-                        <button ng-if="!message.media.thumb && !message.media.caption" type="button" class="btn btn-default">
-                            <span class="glyphicon glyphicon-download" title="{{ message.media.type }}"></span>
-                        </button>
+                        <img ng-if="message.media.thumb" ng-src="{{ message.media.thumb }}" title="{{ message.media.caption }}"/>
+                        <span ng-if="!message.media.thumb" class="glyphicon"
+                              ng-class="message.media.type=='webpage' ? 'glyphicon-link' : 'glyphicon-download'">
+                        </span>
+                        <span ng-if="!message.media.thumb" ng-bind-html="message.media.caption || message.text || message.media.type"></span>
                       </a>
                       <span ng-if="!message.media.url">
                         <span ng-bind-html="message.text"></span>

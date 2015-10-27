@@ -9,6 +9,7 @@ cd "$BASE/tg"
 last_commit=`git rev-parse HEAD`
 git pull
 if [ "$last_commit" != "`git rev-parse HEAD`" ]; then
+  make clean
   ./configure && make
 else
   echo "No need to recompile."

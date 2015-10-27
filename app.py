@@ -125,7 +125,7 @@ def telegram():
                     media = download_media(sender, msg.id, msg.media.type)
                     msg.media.update(media)
                 logger.info(msg)
-                for ws in web_clients:
+                for ws in web_clients.keys():
                     try:
                         ws.send(json.dumps(msg))
                     except WebSocketError:

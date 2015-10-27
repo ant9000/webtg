@@ -35,7 +35,7 @@
                             <span class="glyphicon glyphicon-comment" title="Send message"></span>
                         </button>
                     </div>
-                    <div>
+                    <div ng-class="{admin: member.admin}">
                         <span class="glyphicon glyphicon-user"></span>
                         <strong>{{ member.first_name }} {{ member.last_name }}</strong>
                     </div>
@@ -43,6 +43,7 @@
                 </div>
                 <div ng-if="!current_contact.members" class="group list-group-item">
                     <div>
+                        <div class="pull-right">{{ current_contact.phone }}</div>
                         <span class="glyphicon glyphicon-user"></span>
                         <strong>{{ current_contact.first_name }} {{ current_contact.last_name }}</strong>
                     </div>

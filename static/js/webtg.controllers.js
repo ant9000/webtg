@@ -13,6 +13,7 @@ webtgControllers.controller('MainCtrl', [
 
     // globals
     $scope.username = null;
+    $scope.self = {};
     $scope.conversations = [];
     $scope.current_conversation = {};
     $scope.newmessage = {to: '', content: ''};
@@ -26,12 +27,18 @@ webtgControllers.controller('MainCtrl', [
     $scope.$on('session.state',function(evt,data){
       if(data.status=='connected'){
         $scope.username = data.username;
+        $scope.getSelf();
         $scope.conversationsList();
         $scope.contactsList();
         $interval($scope.statusOnline, 30000);
       }else if(data.status=='not authenticated'){
         $scope.username = '';
         $window.location = '/login';
+      }
+    });
+    $scope.$on('telegram.raw',function(evt,data){
+      if(data.args[0]=='get_self'){
+        $scope.self = data.contents;
       }
     });
     $scope.$on('telegram.dialog_list',function(evt,data){
@@ -61,6 +68,9 @@ webtgControllers.controller('MainCtrl', [
     // telegram commands
     $scope.statusOnline = function(){
       socket.send({ 'event': 'telegram.status_online' });
+    };
+    $scope.getSelf = function(){
+      socket.send({ 'event': 'telegram.raw', 'args': ['get_self'] });
     };
     $scope.conversationsList = function(){
       socket.send({ 'event': 'telegram.dialog_list' });
@@ -137,6 +147,9 @@ webtgControllers.controller('MainCtrl', [
       angular.forEach(contacts, function(v,k){
         if(trackDuplicates[v.id] === undefined){
           trackDuplicates[v.id] = this.push.length;
+          if((v.type=='chat')&&(v.admin)){
+            angular.forEach(v.members, function(vv,kk){ vv.admin = (vv.id==v.admin.id); });
+          }
           this.push(v);
         }
       }, $scope.contacts);

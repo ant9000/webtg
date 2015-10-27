@@ -68,3 +68,5 @@ body > .container { padding-bottom: 90px; }
 }
 
 .panel-footer a.menu.active { font-weight: bold; }
+
+.admin { color: #900; }

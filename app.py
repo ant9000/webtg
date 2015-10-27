@@ -4,6 +4,7 @@
 from cli.logconfig import logging
 import sys
 import os
+import mimetypes
 import threading
 import json
 import gevent
@@ -78,7 +79,9 @@ configuration is correct.
     sys.exit(2)
 
 
+mimetypes.init()
 logger = logging.getLogger()
+
 
 os.environ['TELEGRAM_HOME'] = here('')
 tg = Telegram(
@@ -201,7 +204,14 @@ def send_static(filename):
     if username == 'anonymous' and \
             bottle.request.remote_addr != '127.0.0.1':
         bottle.abort(401, 'Unauthorized.')
-    return bottle.static_file(filename, root=DOWNLOADS)
+    if filename.endswith('.webp'):
+        m = 'image/webp'
+    else:
+        m = mimetypes.guess_type(filename)[0]
+    if not m:
+        m = 'application/octet-stream'
+    logger.info('%s: %s', filename, m)
+    return bottle.static_file(filename, root=DOWNLOADS, mimetype=m)
 
 
 @bottle.route('/websocket', apply=[websocket])

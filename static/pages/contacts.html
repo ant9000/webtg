@@ -7,10 +7,10 @@
                      class="contact list-group-item" ng-class="{ active: contact.id == current_contact.id }"
                      ng-click="setContact(contact)">
                   <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                     <button ng-if="contact.type == 'chat'" type="button" class="btn btn-default" ng-click="editGroup(contact)">
+                     <button ng-if="(contact.type=='chat')&&contact.own" type="button" class="btn btn-default" ng-click="editGroup(contact)">
                        <span class="glyphicon glyphicon-edit" title="Edit Group"></span>
                      </button>
-                     <button ng-if="contact.type == 'user'" type="button" class="btn btn-default" ng-click="editContact(contact)">
+                     <button ng-if="contact.type=='user'" type="button" class="btn btn-default" ng-click="editContact(contact)">
                        <span class="glyphicon glyphicon-edit" title="Edit contact"></span>
                      </button>
                   </div>
@@ -31,7 +31,7 @@
             <div class="list-group">
                 <div ng-if="current_contact.members" ng-repeat="member in current_contact.members" class="group list-group-item">
                     <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                        <button type="button" class="btn btn-default" ng-click="messageGroupMember(member)">
+                        <button type="button" class="btn btn-default" ng-click="messageTo(member)">
                             <span class="glyphicon glyphicon-comment" title="Send message"></span>
                         </button>
                     </div>

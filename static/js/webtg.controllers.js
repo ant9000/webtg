@@ -148,6 +148,7 @@ webtgControllers.controller('MainCtrl', [
         if(trackDuplicates[v.id] === undefined){
           trackDuplicates[v.id] = this.push.length;
           if((v.type=='chat')&&(v.admin)){
+            v.own = (v.admin.id == $scope.self.id);
             angular.forEach(v.members, function(vv,kk){ vv.admin = (vv.id==v.admin.id); });
           }
           this.push(v);
@@ -193,6 +194,11 @@ webtgControllers.controller('MessagesCtrl', [
 webtgControllers.controller('ContactsCtrl', [
   '$scope', 'socket', '$log',
   function($scope, socket, $log){
+
+    $scope.messageTo = function(contact){
+      $scope.newmessage.to = contact.print_name ? contact.print_name : contact.cmd;
+      angular.element('#newmessage-content').focus();
+    };
 
   }
 ]);

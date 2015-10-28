@@ -17,7 +17,8 @@ git clone --recursive https://github.com/ant9000/tg.git
 cd tg
 sudo apt-get install \
     build-essential make libreadline-dev libconfig-dev libssl-dev \
-    lua5.2 liblua5.2-dev libevent-dev libjansson-dev python-dev
+    lua5.2 liblua5.2-dev libevent-dev libjansson-dev python-dev \
+    libffi-dev
 ./configure && make && TELEGRAM_HOME="$BASE" bin/telegram-cli
 
 cat<<MSG

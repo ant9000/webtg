@@ -38,7 +38,7 @@ webtgControllers.controller('MainCtrl', [
     });
     $scope.$on('telegram.raw',function(evt,data){
       if(data.args[0]=='get_self'){
-        $scope.self = data.contents;
+        $scope.self = JSON.parse(data.contents);
       }
     });
     $scope.$on('telegram.dialog_list',function(evt,data){
@@ -62,6 +62,15 @@ webtgControllers.controller('MainCtrl', [
     });
     $scope.$on('telegram.contacts_list',function(evt,data){
       $scope.setContacts(data.contents);
+      $scope.validateCurrentContact();
+    });
+    $scope.$on('telegram.contact_add',function(evt,data){
+      $scope.contactsList();
+    });
+    $scope.$on('telegram.contact_delete',function(evt,data){
+      var contacts = []
+      angular.forEach($scope.contacts, function(v,k){ if(v.id!=data.extra.id) this.push(v); }, contacts);
+      $scope.contacts = contacts;
       $scope.validateCurrentContact();
     });
 
@@ -141,7 +150,7 @@ webtgControllers.controller('MainCtrl', [
       }, c.messages);
       $scope.setConversation(c);
     };
-    $scope.setContacts = function(contacts){
+    $scope.setContacts = function(contacts,chats){
       var trackDuplicates = {};
       angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, trackDuplicates);
       angular.forEach(contacts, function(v,k){
@@ -192,13 +201,38 @@ webtgControllers.controller('MessagesCtrl', [
 ]);
 
 webtgControllers.controller('ContactsCtrl', [
-  '$scope', 'socket', '$log',
-  function($scope, socket, $log){
+  '$scope', '$modal', 'socket', '$log',
+  function($scope, $modal, socket, $log){
 
     $scope.messageTo = function(contact){
       $scope.newmessage.to = contact.print_name ? contact.print_name : contact.cmd;
       angular.element('#newmessage-content').focus();
     };
 
+    $scope.addContact = function(){
+      var modalInstance = $modal.open({
+        templateUrl: 'addContact.html',
+        size: 'sm',
+      });
+
+      modalInstance.result.then(function(contact){
+        $log.log('Add contact: ', contact);
+        socket.send({
+          event: 'telegram.contact_add',
+          args:  [ contact.phone, contact.first_name, contact.last_name ],
+        });
+      }, function(){
+        $log.log('Add contact: dismissed');
+      });
+    };
+
+    $scope.delContact = function(contact){
+      $log.log('Delete contact: ', contact);
+      socket.send({
+        event: 'telegram.contact_delete',
+        args:  [ contact.print_name ],
+        extra: contact
+      });
+    };
   }
 ]);

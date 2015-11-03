@@ -6,14 +6,6 @@
                 <div ng-repeat="contact in contacts"
                      class="contact list-group-item" ng-class="{ active: contact.id == current_contact.id }"
                      ng-click="setContact(contact)">
-                  <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                     <button ng-if="(contact.type=='chat')&&contact.own" type="button" class="btn btn-default" ng-click="editGroup(contact)">
-                       <span class="glyphicon glyphicon-edit" title="Edit Group"></span>
-                     </button>
-                     <button ng-if="contact.type=='user'" type="button" class="btn btn-default" ng-click="editContact(contact)">
-                       <span class="glyphicon glyphicon-edit" title="Edit contact"></span>
-                     </button>
-                  </div>
                   <div ng-if="contact.type == 'user'">
                     <span class="glyphicon glyphicon-user"></span>
                     <strong>{{ contact.first_name }} {{ contact.last_name }}</strong>
@@ -28,24 +20,50 @@
         </div>
 
         <div class="col-md-4">
-            <div class="list-group">
-                <div ng-if="current_contact.members" ng-repeat="member in current_contact.members" class="group list-group-item">
-                    <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                        <button type="button" class="btn btn-default" ng-click="messageTo(member)">
-                            <span class="glyphicon glyphicon-comment" title="Send message"></span>
+            <div class="list-group" ng-if="current_contact.type == 'chat'">
+                <div class="group list-group-item">
+                    <div class="pull-right btn-group btn-group-xs">
+                        <button type="button" class="btn btn-default" ng-if="current_contact.own" ng-click="">
+                            <span class="glyphicon glyphicon-edit" title="Edit"></span>
                         </button>
                     </div>
-                    <div ng-class="{admin: member.admin}">
-                        <span class="glyphicon glyphicon-user"></span>
+                    <div ng-click="messageTo(current_contact)">
+                        <span class="glyphicon glyphicon-menu-hamburger"></span>
+                        <strong>{{ current_contact.title }}</strong>
+                    </div>
+                </div>
+                <div ng-if="current_contact.members" ng-repeat="member in current_contact.members" class="group list-group-item">
+                    <div class="pull-right btn-group btn-group-xs">
+                        <button ng-if="member.id==self.id" type="button" class="btn btn-default" ng-click="leaveGroup(current_contact)">
+                            <span class="glyphicon glyphicon-log-out" title="Leave"></span>
+                        </button>
+                        <button ng-if="current_contact.own&&(member.id!=self.id)" type="button" class="btn btn-default" ng-click="delMember(current_contact,member)">
+                            <span class="glyphicon glyphicon-remove" title="Remove"></span>
+                        </button>
+                    </div>
+                    <div ng-click="messageTo(member)">
+                        <span class="glyphicon glyphicon-user" ng-class="{admin: member.admin}"></span>
                         <strong>{{ member.first_name }} {{ member.last_name }}</strong>
                     </div>
                     <div class="clearfix"></div>
                 </div>
-                <div ng-if="!current_contact.members" class="group list-group-item">
+            </div>
+            <div class="list-group" ng-if="current_contact.type == 'user'">
+                <div class="group list-group-item">
                     <div>
-                        <div class="pull-right">{{ current_contact.phone }}</div>
-                        <span class="glyphicon glyphicon-user"></span>
-                        <strong>{{ current_contact.first_name }} {{ current_contact.last_name }}</strong>
+                        <div class="pull-right btn-group btn-group-xs">
+                            <button type="button" class="btn btn-default" ng-click="delContact(current_contact)">
+                                <span class="glyphicon glyphicon-remove" title="Remove"></span>
+                            </button>
+                        </div>
+                        <div>
+                            <span class="glyphicon glyphicon-user"></span>
+                            <strong>{{ current_contact.first_name }} {{ current_contact.last_name }}</strong>
+                        </div>
+                        <div>
+                            <span class="glyphicon glyphicon-earphone"></span>
+                            {{ current_contact.phone }}
+                        </div>
                     </div>
                     <div class="clearfix"></div>
                 </div>
@@ -54,18 +72,41 @@
 
         <div class="col-md-4">
             <div class="pull-right btn-group" role="group" aria-label="Actions">
-                <button type="button" class="btn btn-primary" ng-click="editContact({})">
+                <button type="button" class="btn btn-primary" ng-click="addContact()">
                     <span class="glyphicon glyphicon-plus"></span>
-                    Add contact
+                    New contact
                 </button>
                 <button type="button" class="btn btn-primary" ng-click="editGroup({})">
                     <span class="glyphicon glyphicon-plus"></span>
-                    Add group
+                    New group
                 </button>
             </div>
             <div class="clearfix"></div>
         </div>
     </div>
+
+    <script type="text/ng-template" id="addContact.html">
+        <div class="modal-header">
+           <h3 class="modal-title">Add new Contact</h3>
+        </div>
+        <div class="modal-body">
+           <form>
+              <div class="form-group">
+                <input type="text" class="form-control" id="first_name" placeholder="First name" ng-model="contact.first_name" required />
+              </div>
+              <div class="form-group">
+                <input type="text" class="form-control" id="last_name" placeholder="Last name" ng-model="contact.last_name" />
+              </div>
+              <div class="form-group">
+                <input type="text" class="form-control" id="phone" placeholder="Telephone" ng-model="contact.phone" />
+              </div>
+           </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="$close(contact)">OK</button>
+            <button class="btn btn-warning" ng-click="$dismiss('cancel')">Cancel</button>
+        </div>
+    </script>
 
     <script type="text/ng-template" id="editGroup.html">
         <div class="modal-header">

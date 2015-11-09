@@ -234,5 +234,35 @@ webtgControllers.controller('ContactsCtrl', [
         extra: contact
       });
     };
+
+    $scope.editGroup = function(group){
+      $log.log('Edit group: ', group);
+      var modalInstance = $modal.open({
+        templateUrl: 'editGroup.html',
+        controller:  'EditGroupCtrl',
+        size: 'sm',
+        resolve: {
+          group:    function(){ return angular.copy(group); },
+          contacts: function(){ return $scope.contacts; },
+        }
+      });
+      modalInstance.result.then(function(group){
+        if(!group.id){
+          $log.log('Add new group: ', group);
+        }else{
+          $log.log('Edit group: ', group);
+        }
+      }, function(){
+        $log.log('Edit group: dismissed');
+      });
+    };
+
   }
 ]);
+
+webtgControllers.controller('EditGroupCtrl', function ($scope, $modalInstance, group, contacts) {
+  $scope.group = group;
+  $scope.contacts = contacts;
+  group.selected = {};
+  angular.forEach(group.members, function(v,k){ this[v.print_name] = true; }, group.selected); 
+});

@@ -23,7 +23,8 @@
             <div class="list-group" ng-if="current_contact.type == 'chat'">
                 <div class="group list-group-item">
                     <div class="pull-right btn-group btn-group-xs">
-                        <button type="button" class="btn btn-default" ng-if="current_contact.own" ng-click="">
+                        <!-- button type="button" class="btn btn-default" ng-if="current_contact.own" ng-click="editGroup(current_contact)" -->
+                        <button type="button" class="btn btn-default" ng-click="editGroup(current_contact)">
                             <span class="glyphicon glyphicon-edit" title="Edit"></span>
                         </button>
                     </div>
@@ -33,14 +34,6 @@
                     </div>
                 </div>
                 <div ng-if="current_contact.members" ng-repeat="member in current_contact.members" class="group list-group-item">
-                    <div class="pull-right btn-group btn-group-xs">
-                        <button ng-if="member.id==self.id" type="button" class="btn btn-default" ng-click="leaveGroup(current_contact)">
-                            <span class="glyphicon glyphicon-log-out" title="Leave"></span>
-                        </button>
-                        <button ng-if="current_contact.own&&(member.id!=self.id)" type="button" class="btn btn-default" ng-click="delMember(current_contact,member)">
-                            <span class="glyphicon glyphicon-remove" title="Remove"></span>
-                        </button>
-                    </div>
                     <div ng-click="messageTo(member)">
                         <span class="glyphicon glyphicon-user" ng-class="{admin: member.admin}"></span>
                         <strong>{{ member.first_name }} {{ member.last_name }}</strong>
@@ -117,23 +110,20 @@
            <form>
               <input type="hidden" class="form-control" id="group_id" ng-model="group.id" />
               <div class="form-group">
-                <label for="subject">Group subject</label>
-                <input type="text" class="form-control" id="subject" placeholder="Enter group subject" ng-model="group.subject" required />
+                <h3 ng-if="group.id"> {{ group.title }}</h3>
+                <input type="text" class="form-control" id="title" placeholder="Group title" ng-if="!group.id" ng-model="group.title" required />
               </div>
-              <div class="form-group" ng-if="group.id">
-                <label for="participants">Participants</label>
-                <textarea class="form-control" id="participants" placeholder="Enter participants, one per line"
-                     ng-model="group.participants" ng-list="&#10;" ng-trim="false" />
-              </div>
-              <div ng-if="group.id" class="checkbox">
-                <label for="leave">
-                  <input type="checkbox" id="leave" ng-model="group.leave" /> Leave group?
+              <div class="form-group" ng-repeat="contact in contacts | filter:{type: 'user'}">
+                <label>
+                    <input type="checkbox" ng-value="{{ contact.print_name }}" ng-model="group.selected[contact.print_name]" />
+                    {{ contact.first_name }} {{ contact.last_name }}
                 </label>
               </div>
            </form>
         </div>
+
         <div class="modal-footer">
-            <button class="btn btn-primary" ng-click="$close(group)">OK</button>
+            <button class="btn btn-primary" ng-click="$close(group, selected)">OK</button>
             <button class="btn btn-warning" ng-click="$dismiss('cancel')">Cancel</button>
         </div>
     </script>

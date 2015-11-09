@@ -52,7 +52,10 @@
               <div>
                 <form id="msg-form" ng-submit="sendMessage()">
                   <div class="col-lg-2">
-                    <input type="text" class="form-control" placeholder="to" ng-model="newmessage.to" required="" />
+                    <select class="form-control" ng-model="newmessage.to" required="">
+                      <option></option>
+                      <option ng-repeat="contact in contacts">{{ contact.print_name }}</option>
+                    </select>
                   </div>
                   <div class="col-lg-9">
                     <input type="text" class="form-control" id="newmessage-content" placeholder="content" ng-model="newmessage.content" required="" />

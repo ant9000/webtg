@@ -19,6 +19,7 @@ webtgControllers.controller('MainCtrl', [
     $scope.newmessage = {to: '', content: ''};
     $scope.contacts = [];
     $scope.current_contact = {};
+    $scope.page_length = 25;
 
     // event handlers
     $scope.$on('connection',function(evt,state){
@@ -93,10 +94,11 @@ webtgControllers.controller('MainCtrl', [
     $scope.conversationsList = function(){
       socket.send({ 'event': 'telegram.dialog_list' });
     };
-    $scope.conversationHistory = function(){
+    $scope.conversationHistory = function(older){
+      var offset = $scope.current_conversation.messages && (older!==false) ? $scope.current_conversation.messages.length : 0;
       socket.send({
         event: 'telegram.history',
-        args:  [ $scope.current_conversation.print_name ],
+        args:  [ $scope.current_conversation.print_name, $scope.page_length, offset ],
         extra: $scope.current_conversation
       });
     };
@@ -157,6 +159,7 @@ webtgControllers.controller('MainCtrl', [
           this.push(v);
         }
       }, c.messages);
+      if(messages.length < $scope.page_length){ c.all_read = true; }
       $scope.setConversation(c);
     };
     $scope.setContacts = function(contacts,chats){

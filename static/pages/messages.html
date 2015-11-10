@@ -23,7 +23,7 @@
         </div>
         <div class="col-md-4">
             <div ng-if="current_conversation" ng-repeat="message in current_conversation.messages|orderBy:'-date' track by message.id">
-                 <div class="bubble" ng-class="{ own: message.out }">
+                 <div class="bubble" ng-class="{ own: message.out }" ng-if="!message.service">
 
                    <div class="pull-right">
                      <div>[<span class="time">{{ message.date*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>]</div>

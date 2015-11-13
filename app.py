@@ -22,15 +22,11 @@ from pytg.receiver import Receiver
 from pytg.utils import coroutine
 from pytg.exceptions import ConnectionError
 
-# fix broken code "len(value) > 1" should be "len(value) > 0"
+# we do not want exceptions for result_parser.something
 import pytg.result_parser
 from pytg.exceptions import IllegalResponseException
-def patched_something(value):
-    if not (value and len(value) > 0):
-        raise IllegalResponseException("Should return something.")
-    return value
-pytg.result_parser.something = patched_something
-# end fix
+pytg.result_parser.something = lambda x: x
+# end patch
 
 def here(path):
     global __file__

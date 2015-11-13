@@ -19,6 +19,7 @@ webtgControllers.controller('MainCtrl', [
     $scope.newmessage = {to: '', content: ''};
     $scope.contacts = [];
     $scope.current_contact = {};
+    $scope.page_length = 25;
 
     // event handlers
     $scope.$on('connection',function(evt,state){
@@ -73,6 +74,15 @@ webtgControllers.controller('MainCtrl', [
       $scope.contacts = contacts;
       $scope.validateCurrentContact();
     });
+    $scope.$on('telegram.service',function(evt,data){
+      switch(data.action.type){
+        case 'chat_created':
+        case 'chat_add_user':
+        case 'chat_del_user':
+          $scope.conversationsList();
+          break;
+      }
+    });
 
     // telegram commands
     $scope.statusOnline = function(){
@@ -84,10 +94,11 @@ webtgControllers.controller('MainCtrl', [
     $scope.conversationsList = function(){
       socket.send({ 'event': 'telegram.dialog_list' });
     };
-    $scope.conversationHistory = function(){
+    $scope.conversationHistory = function(older){
+      var offset = $scope.current_conversation.messages && (older!==false) ? $scope.current_conversation.messages.length : 0;
       socket.send({
         event: 'telegram.history',
-        args:  [ $scope.current_conversation.print_name ],
+        args:  [ $scope.current_conversation.print_name, $scope.page_length, offset ],
         extra: $scope.current_conversation
       });
     };
@@ -109,7 +120,7 @@ webtgControllers.controller('MainCtrl', [
         $scope.conversationHistory();
       }
       if(set_to!==false){
-        $scope.newmessage.to = conversation.print_name ? conversation.print_name : conversation.cmd;
+        $scope.newmessage.to = conversation.print_name;
       }
     };
     $scope.clearConversation = function(){
@@ -148,28 +159,29 @@ webtgControllers.controller('MainCtrl', [
           this.push(v);
         }
       }, c.messages);
+      if(messages.length < $scope.page_length){ c.all_read = true; }
       $scope.setConversation(c);
     };
     $scope.setContacts = function(contacts,chats){
-      var trackDuplicates = {};
-      angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, trackDuplicates);
+      var contactsIndex = {};
+      angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, contactsIndex);
       angular.forEach(contacts, function(v,k){
-        if(trackDuplicates[v.id] === undefined){
-          trackDuplicates[v.id] = this.push.length;
-          if((v.type=='chat')&&(v.admin)){
-            v.own = (v.admin.id == $scope.self.id);
-            angular.forEach(v.members, function(vv,kk){ vv.admin = (vv.id==v.admin.id); });
-          }
+        if((v.type=='chat')&&(v.admin)){
+          v.own = (v.admin.id == $scope.self.id);
+          angular.forEach(v.members, function(vv,kk){ vv.admin = (vv.id==v.admin.id); });
+        }
+        if(contactsIndex[v.id] === undefined){
+          contactsIndex[v.id] = this.push.length;
           this.push(v);
+        }else{
+          this[k] = v;
         }
       }, $scope.contacts);
     };
     $scope.setContact = function(contact, set_to){
-      if($scope.current_contact.id != contact.id){
-        $scope.current_contact = contact;
-      }
+      $scope.current_contact = contact;
       if(set_to!==false){
-        $scope.newmessage.to = contact.print_name ? contact.print_name : contact.cmd;
+        $scope.newmessage.to = contact.print_name;
       }
     };
     $scope.clearContact = function(){
@@ -236,21 +248,53 @@ webtgControllers.controller('ContactsCtrl', [
     };
 
     $scope.editGroup = function(group){
-      $log.log('Edit group: ', group);
+      $log.log('Editing group: ', group);
       var modalInstance = $modal.open({
         templateUrl: 'editGroup.html',
         controller:  'EditGroupCtrl',
         size: 'sm',
         resolve: {
+          self:     function(){ return angular.copy($scope.self); },
           group:    function(){ return angular.copy(group); },
           contacts: function(){ return $scope.contacts; },
         }
       });
+      var initial = angular.copy(group);
       modalInstance.result.then(function(group){
         if(!group.id){
           $log.log('Add new group: ', group);
+          var members = [];
+          angular.forEach(group.selected,function(v,k){ if(v) this.push(k); },members);
+          if(group.title && members.length){
+            socket.send({
+              event: 'telegram.create_group_chat',
+              args:  [ group.title ].concat(members),
+            });
+          }
         }else{
-          $log.log('Edit group: ', group);
+          $log.log('Edit group: ', initial, ' -> ', group);
+          if(group.title && (group.title != initial.title)){
+            socket.send({
+              event: 'telegram.chat_rename',
+              args:  [ group.print_name, group.title ],
+            });
+          }
+          var variations = {};
+          angular.forEach(group.selected, function(v,k){ if(v) this[k] = v; }, variations)
+          angular.forEach(group.members, function(v,k){
+            if(this[v.print_name]){
+              delete this[v.print_name];
+            }else{
+              this[v.print_name] = false;
+            }
+          }, variations);
+          $log.log('Edit group variations: ', variations);
+          angular.forEach(variations,function(v,k){
+            socket.send({
+              event: 'telegram.chat_' + (v ? 'add' : 'del') + '_user',
+              args:  [ group.print_name, k ],
+            });
+          });
         }
       }, function(){
         $log.log('Edit group: dismissed');
@@ -260,7 +304,8 @@ webtgControllers.controller('ContactsCtrl', [
   }
 ]);
 
-webtgControllers.controller('EditGroupCtrl', function ($scope, $modalInstance, group, contacts) {
+webtgControllers.controller('EditGroupCtrl', function ($scope, $modalInstance, self, group, contacts) {
+  $scope.self = self;
   $scope.group = group;
   $scope.contacts = contacts;
   group.selected = {};

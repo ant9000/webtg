@@ -10,7 +10,7 @@ cd "$BASE"
 virtualenv env
 . env/bin/activate
 pip install -U pip
-pip install bottle-beaker bottle-cork bottle-websocket pyOpenSSL
+pip install Beaker bottle-beaker bottle-cork==0.11.1 bottle-websocket pyOpenSSL
 pip install DictObject
 pip install git+https://github.com/luckydonald/pytg.git
 git clone --recursive https://github.com/ant9000/tg.git

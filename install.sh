@@ -14,6 +14,8 @@ pip install Beaker bottle-beaker bottle-cork==0.11.1 bottle-websocket pyOpenSSL
 pip install DictObject
 pip install git+https://github.com/luckydonald/pytg.git
 cd tg
+git submodule init
+git submodule update
 sudo apt-get install \
     build-essential make libreadline-dev libconfig-dev libssl-dev \
     lua5.2 liblua5.2-dev libevent-dev libjansson-dev python-dev \

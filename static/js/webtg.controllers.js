@@ -162,7 +162,7 @@ webtgControllers.controller('MainCtrl', [
       if(messages.length < $scope.page_length){ c.all_read = true; }
       $scope.setConversation(c);
     };
-    $scope.setContacts = function(contacts,chats){
+    $scope.setContacts = function(contacts){
       var contactsIndex = {};
       angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, contactsIndex);
       angular.forEach(contacts, function(v,k){
@@ -299,6 +299,23 @@ webtgControllers.controller('ContactsCtrl', [
       }, function(){
         $log.log('Edit group: dismissed');
       });
+    };
+
+    $scope.leaveGroup = function(contact){
+      $log.log('Leave group: ', contact);
+      socket.send({
+        event: 'telegram.chat_del_user',
+        args:  [ contact.print_name, $scope.self.print_name ],
+      });
+      socket.send({
+        event: 'telegram.raw',
+        args:  [ 'delete_history '+contact.print_name ],
+      });
+      var contacts = [];
+      angular.forEach($scope.contacts, function(v,k){ if(v.id != contact.id) this.push(v); }, contacts);
+      $scope.contacts = contacts;
+      $scope.current_contact = {};
+      $scope.validateCurrentContact();
     };
 
   }

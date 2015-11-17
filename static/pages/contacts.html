@@ -26,11 +26,9 @@
                         <button type="button" class="btn btn-default" ng-if="current_contact.own" ng-click="editGroup(current_contact)">
                             <span class="glyphicon glyphicon-edit" title="Edit"></span>
                         </button>
-<!--
-                        <button type="button" class="btn btn-default" ng-if="!current_contact.own" ng-click="leaveGroup(current_contact)">
+                        <button type="button" class="btn btn-default" ng-click="leaveGroup(current_contact)">
                             <span class="glyphicon glyphicon-log-out" title="Leave"></span>
                         </button>
--->
                     </div>
                     <div ng-click="messageTo(current_contact)">
                         <span class="glyphicon glyphicon-menu-hamburger" ng-class="{admin: current_contact.own}"></span>

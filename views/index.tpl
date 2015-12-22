@@ -9,7 +9,7 @@
     <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon" sizes="16x16 24x24 32x32 64x64" />
     <link rel="stylesheet" href="/static/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/static/css/bootstrap-theme.min.css" />
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/emojione/1.5.1/assets/css/emojione.min.css"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/emojione/2.0.0/assets/css/emojione.min.css"/>
     <link rel="stylesheet" href="/static/css/style.css" />
 
     <script src="/static/js/jquery-1.11.2.min.js"></script>
@@ -19,7 +19,7 @@
     <script src="/static/js/angular-route.min.js"></script>
     <script src="/static/js/angular-sanitize.min.js"></script>
     <script src="/static/js/ui-bootstrap-tpls-0.12.1.min.js"></script>
-    <script src="//cdn.jsdelivr.net/emojione/1.5.1/lib/js/emojione.min.js"></script>
+    <script src="//cdn.jsdelivr.net/emojione/2.0.0/lib/js/emojione.min.js"></script>
 
     <script src="/static/js/webtg.app.js"></script>
     <script src="/static/js/webtg.services.js"></script>

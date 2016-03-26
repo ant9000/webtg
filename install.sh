@@ -10,13 +10,13 @@ cd "$BASE"
 sudo apt-get install \
     build-essential make libreadline-dev libconfig-dev libssl-dev \
     lua5.2 liblua5.2-dev libevent-dev libjansson-dev python-dev \
-    libffi-dev
+    python-virtualenv libffi-dev
 virtualenv env
 . env/bin/activate
 pip install -U pip
 pip install Beaker bottle-beaker bottle-cork==0.11.1 bottle-websocket pyOpenSSL
 pip install DictObject
-pip install git+https://github.com/luckydonald/pytg.git
+pip install git+https://github.com/luckydonald/pytg.git@v0.4.5
 cd tg
 ./configure && make && TELEGRAM_HOME="$BASE" bin/telegram-cli
 

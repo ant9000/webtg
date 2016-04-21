@@ -1,0 +1,8 @@
+pyOpenSSL
+bottle
+Beaker
+bottle-beaker
+bottle-cork
+bottle-websocket
+gevent-websocket
+pytg

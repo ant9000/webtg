@@ -14,9 +14,7 @@ sudo apt-get install \
 virtualenv env
 . env/bin/activate
 pip install -U pip
-pip install Beaker bottle-beaker bottle-cork==0.11.1 bottle-websocket pyOpenSSL
-pip install DictObject
-pip install git+https://github.com/luckydonald/pytg.git@v0.4.5
+pip install -r requirements.txt
 cd tg
 ./configure && make && TELEGRAM_HOME="$BASE" bin/telegram-cli
 

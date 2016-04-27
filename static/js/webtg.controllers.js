@@ -51,7 +51,7 @@ webtgControllers.controller('MainCtrl', [
       $scope.validateCurrentContact();
     });
     $scope.$on('telegram.history',function(evt,data){
-      $scope.setMessages(data.extra, data.contents);
+      if(!data.error){ $scope.setMessages(data.extra, data.contents); }
     });
     $scope.$on('telegram.message',function(evt,data){
       // normalize data, to make message obj compatible with history
@@ -167,8 +167,13 @@ webtgControllers.controller('MainCtrl', [
       angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, contactsIndex);
       angular.forEach(contacts, function(v,k){
         if((v.peer_type=='chat')&&(v.admin)){
-          v.own = (v.admin.id == $scope.self.id);
-          angular.forEach(v.members, function(vv,kk){ vv.admin = (vv.id==v.admin.id); });
+          v.own = false;
+          angular.forEach(v.members, function(vv,kk){
+            if(vv.inviter&&(vv.inviter.peer_id===0)){
+              vv.admin=true;
+              if((vv.peer_id==$scope.self.peer_id){ v.own=true; }
+            }
+          });
         }
         if(contactsIndex[v.id] === undefined){
           contactsIndex[v.id] = this.push.length;

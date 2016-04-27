@@ -6,11 +6,11 @@
                 <div ng-repeat="contact in contacts"
                      class="contact list-group-item" ng-class="{ active: contact.id == current_contact.id }"
                      ng-click="setContact(contact)">
-                  <div ng-if="contact.type == 'user'">
+                  <div ng-if="contact.peer_type == 'user'">
                     <span class="glyphicon glyphicon-user"></span>
                     <strong>{{ contact.first_name }} {{ contact.last_name }}</strong>
                   </div>
-                  <div ng-if="contact.type == 'chat'">
+                  <div ng-if="contact.peer_type == 'chat'">
                     <span class="glyphicon glyphicon-menu-hamburger" ng-class="{admin: contact.own}"></span>
                     <strong>{{ contact.title }}</strong>
                   </div>
@@ -20,7 +20,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="list-group" ng-if="current_contact.type == 'chat'">
+            <div class="list-group" ng-if="current_contact.peer_type == 'chat'">
                 <div class="group list-group-item">
                     <div class="pull-right btn-group btn-group-xs">
                         <button type="button" class="btn btn-default" ng-if="current_contact.own" ng-click="editGroup(current_contact)">
@@ -43,7 +43,7 @@
                     <div class="clearfix"></div>
                 </div>
             </div>
-            <div class="list-group" ng-if="current_contact.type == 'user'">
+            <div class="list-group" ng-if="current_contact.peer_type == 'user'">
                 <div class="group list-group-item">
                     <div>
                         <div class="pull-right btn-group btn-group-xs">

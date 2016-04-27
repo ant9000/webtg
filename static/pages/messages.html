@@ -9,11 +9,11 @@
                   <div class="time pull-right">
                     <span ng-if="conversation.last_timestamp">{{ conversation.last_timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>
                   </div>
-                  <div ng-if="conversation.type == 'user'">
+                  <div ng-if="conversation.peer_type == 'user'">
                     <span class="glyphicon glyphicon-user"></span>
                     <strong>{{ conversation.first_name }} {{ conversation.last_name }}</strong>
                   </div>
-                  <div ng-if="conversation.type == 'chat'">
+                  <div ng-if="conversation.peer_type == 'chat'">
                     <span class="glyphicon glyphicon-menu-hamburger"></span>
                     <strong>{{ conversation.title }}</strong>
                   </div>

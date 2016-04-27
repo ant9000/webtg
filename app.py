@@ -83,7 +83,7 @@ os.environ['TELEGRAM_HOME'] = here('')
 tg = Telegram(
     telegram=here('tg/bin/telegram-cli'),
     pubkey_file=here('tg/tg-server.pub'),
-    custom_cli_args=['-d', '-L', here('logs/telegram.log'),'-N'],
+    custom_cli_args=['-d', '-L', here('logs/telegram.log'), '-N'],
 )
 
 def download_media(sender, msg_id, media_type):
@@ -100,8 +100,8 @@ def download_media(sender, msg_id, media_type):
             response = getattr(sender,command)(msg_id)
         except Exception, e:
             logger.exception('%s', e)
-        if response and not response.get('error'):
-            filepath = response.get('result')
+        if response:
+            filepath = response
             try:
                 filepath = filepath[filepath.index('/downloads/'):]
             except ValueError:
@@ -276,11 +276,11 @@ def handle_websocket(ws):
 
                         if command == 'dialog_list':
                             for c in response['contents']:
-                                last_message = tg.sender.history('%s#%s' % (c.type, c.id), 1)
+                                last_message = tg.sender.history('%s#%s' % (c.peer_type, c.peer_id), 1)
                                 if len(last_message):
                                     c.last_timestamp = last_message[0].date
-                                if c.type == 'chat':
-                                    info = tg.sender.chat_info('%s#%s' % (c.type, c.id))
+                                if c.peer_type == 'chat':
+                                    info = tg.sender.chat_info('%s#%s' % (c.peer_type, c.peer_id))
                                     c.update(info)
                         elif command == 'history':
                             for msg in response['contents']:

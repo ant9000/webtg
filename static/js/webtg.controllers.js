@@ -46,7 +46,7 @@ webtgControllers.controller('MainCtrl', [
       $scope.conversations = data.contents;
       $scope.validateCurrentConversation();
       var chats = [];
-      angular.forEach(data.contents, function(v,k){ if(v.type=='chat'){ this.push(v); } }, chats);
+      angular.forEach(data.contents, function(v,k){ if(v.peer_type=='chat'){ this.push(v); } }, chats);
       $scope.setContacts(chats);
       $scope.validateCurrentContact();
     });
@@ -70,7 +70,7 @@ webtgControllers.controller('MainCtrl', [
     });
     $scope.$on('telegram.contact_delete',function(evt,data){
       var contacts = []
-      angular.forEach($scope.contacts, function(v,k){ if(v.id!=data.extra.id) this.push(v); }, contacts);
+      angular.forEach($scope.contacts, function(v,k){ if(v.peer_id!=data.extra.peer_id) this.push(v); }, contacts);
       $scope.contacts = contacts;
       $scope.validateCurrentContact();
     });
@@ -166,7 +166,7 @@ webtgControllers.controller('MainCtrl', [
       var contactsIndex = {};
       angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, contactsIndex);
       angular.forEach(contacts, function(v,k){
-        if((v.type=='chat')&&(v.admin)){
+        if((v.peer_type=='chat')&&(v.admin)){
           v.own = (v.admin.id == $scope.self.id);
           angular.forEach(v.members, function(vv,kk){ vv.admin = (vv.id==v.admin.id); });
         }

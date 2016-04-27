@@ -21,7 +21,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4" style="max-height:600px;overflow:auto;">
             <div ng-if="current_conversation" ng-repeat="message in current_conversation.messages|orderBy:'-date' track by message.id">
                  <div class="bubble" ng-class="{ own: message.out }" ng-if="!message.service">
 

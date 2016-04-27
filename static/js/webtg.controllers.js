@@ -171,7 +171,7 @@ webtgControllers.controller('MainCtrl', [
           angular.forEach(v.members, function(vv,kk){
             if(vv.inviter&&(vv.inviter.peer_id===0)){
               vv.admin=true;
-              if((vv.peer_id==$scope.self.peer_id){ v.own=true; }
+              if(vv.peer_id==$scope.self.peer_id){ v.own=true; }
             }
           });
         }

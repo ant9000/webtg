@@ -27,10 +27,10 @@
             <div class="list-group" ng-if="current_contact.peer_type == 'channel'">
                 <div class="group list-group-item">
                     <div class="pull-right btn-group btn-group-xs">
-                        <button type="button" class="btn btn-default" ng-if="current_contact.own" ng-click="editChannel(current_contact)">
+                        <button type="button" class="btn btn-default" ng-if="current_contact.own" ng-click="editChannel(current_contact)" ng-disabled="true">
                             <span class="glyphicon glyphicon-edit" title="Edit"></span>
                         </button>
-                        <button type="button" class="btn btn-default" ng-click="leaveChannel(current_contact)">
+                        <button type="button" class="btn btn-default" ng-click="leaveChannel(current_contact)" ng-disabled="true">
                             <span class="glyphicon glyphicon-log-out" title="Leave"></span>
                         </button>
                     </div>
@@ -101,6 +101,10 @@
                 <button type="button" class="btn btn-primary" ng-click="editGroup({})">
                     <span class="glyphicon glyphicon-plus"></span>
                     New group
+                </button>
+                <button type="button" class="btn btn-primary" ng-click="editChannel({})" ng-disabled="true">
+                    <span class="glyphicon glyphicon-plus"></span>
+                    New channel
                 </button>
             </div>
             <div class="clearfix"></div>

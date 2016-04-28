@@ -58,7 +58,7 @@
                     <input type="text" class="form-control" id="newmessage-content" placeholder="content" ng-model="newmessage.content" required="" />
                   </div>
                   <div class="col-lg-1">
-                    <button type="submit" class="btn btn-default pull-right">Send</button>
+                    <button type="submit" class="btn btn-default pull-right" ng-disabled="!newmessage.to||!newmessage.content||(newmessage.contact&&newmessage.contact.peer_type=='channel'&&!newmessage.contact.own)">Send</button>
                   </div>
                 </form>
               </div>

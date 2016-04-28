@@ -111,10 +111,13 @@ webtgControllers.controller('MainCtrl', [
           event: 'telegram.msg',
           args:  [ $scope.newmessage.to, $scope.newmessage.content ],
         });
-        $scope.newmessage.content = '';
       }else{
-        $log.log('TODO', $scope.newmessage);
+        socket.send({
+          event: 'telegram.raw',
+          args:  [ 'post '+$scope.newmessage.to+' '+$scope.newmessage.content ],
+        });
       }
+      $scope.newmessage.content = '';
     };
     $scope.contactsList = function(){
       socket.send({ 'event': 'telegram.contacts_list' });

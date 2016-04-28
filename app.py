@@ -281,6 +281,7 @@ def handle_websocket(ws):
                                     c.last_timestamp = last_message[0].date
                                 if c.peer_type == 'chat':
                                     info = tg.sender.chat_info('%s#%s' % (c.peer_type, c.peer_id))
+                                    c.update(info)
                                 elif c.peer_type == 'channel':
                                     try:
                                         admins = tg.sender.channel_get_admins('%s#%s' % (c.peer_type, c.peer_id))
@@ -289,9 +290,9 @@ def handle_websocket(ws):
                                         for m in members:
                                             if m in admins:
                                                 m.admin = True
-                                        c.update({ 'members': members })
+                                        c.members = members
                                     except IllegalResponseException:
-                                        c.own = False
+                                        pass
                         elif command == 'history':
                             for msg in response['contents']:
                                 if msg.get('media',''):

@@ -17,6 +17,10 @@
                     <span class="glyphicon glyphicon-menu-hamburger"></span>
                     <strong>{{ conversation.title }}</strong>
                   </div>
+                  <div ng-if="conversation.peer_type == 'channel'">
+                    <span class="glyphicon glyphicon-th"></span>
+                    <strong>{{ conversation.title }}</strong>
+                  </div>
                   <div class="clearfix"></div>
                 </div>
             </div>

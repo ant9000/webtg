@@ -15,7 +15,7 @@ from geventwebsocket import WebSocketError
 from beaker.middleware import SessionMiddleware
 from cli.config import Config, NoSectionError, NoOptionError
 from cli.mail import Mailer
-from DictObject import DictObject
+from DictObject import DictObject, DictObjectList
 
 from pytg import Telegram
 from pytg.receiver import Receiver
@@ -266,7 +266,7 @@ def handle_websocket(ws):
                 else:
                     logger.error("unknown command '%s'", command)
             elif channel == 'telegram':
-                cmd = getattr(tg.sender,command, None)
+                cmd = getattr(tg.sender, command, None)
                 if cmd:
                     try:
                         response = cmd(*data.get('args',[]))
@@ -281,7 +281,17 @@ def handle_websocket(ws):
                                     c.last_timestamp = last_message[0].date
                                 if c.peer_type == 'chat':
                                     info = tg.sender.chat_info('%s#%s' % (c.peer_type, c.peer_id))
-                                    c.update(info)
+                                elif c.peer_type == 'channel':
+                                    try:
+                                        admins = tg.sender.channel_get_admins('%s#%s' % (c.peer_type, c.peer_id))
+                                        members = tg.sender.channel_get_members('%s#%s' % (c.peer_type, c.peer_id))
+                                        c.own = True
+                                        for m in members:
+                                            if m in admins:
+                                                m.admin = True
+                                        c.update({ 'members': members })
+                                    except IllegalResponseException:
+                                        c.own = False
                         elif command == 'history':
                             for msg in response['contents']:
                                 if msg.get('media',''):

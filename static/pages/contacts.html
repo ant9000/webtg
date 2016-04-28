@@ -14,12 +14,39 @@
                     <span class="glyphicon glyphicon-menu-hamburger" ng-class="{admin: contact.own}"></span>
                     <strong>{{ contact.title }}</strong>
                   </div>
+                  <div ng-if="contact.peer_type == 'channel'">
+                    <span class="glyphicon glyphicon-th" ng-class="{admin: contact.own}"></span>
+                    <strong>{{ contact.title }}</strong>
+                  </div>
                   <div class="clearfix"></div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-4">
+            <div class="list-group" ng-if="current_contact.peer_type == 'channel'">
+                <div class="group list-group-item">
+                    <div class="pull-right btn-group btn-group-xs">
+                        <button type="button" class="btn btn-default" ng-if="current_contact.own" ng-click="editChannel(current_contact)">
+                            <span class="glyphicon glyphicon-edit" title="Edit"></span>
+                        </button>
+                        <button type="button" class="btn btn-default" ng-click="leaveChannel(current_contact)">
+                            <span class="glyphicon glyphicon-log-out" title="Leave"></span>
+                        </button>
+                    </div>
+                    <div ng-click="messageTo(current_contact)">
+                        <span class="glyphicon glyphicon-th" ng-class="{admin: current_contact.own}"></span>
+                        <strong>{{ current_contact.title }}</strong>
+                    </div>
+                </div>
+                <div ng-if="current_contact.members" ng-repeat="member in current_contact.members" class="group list-group-item">
+                    <div ng-click="messageTo(member)">
+                        <span class="glyphicon glyphicon-user" ng-class="{admin: member.admin}"></span>
+                        <strong>{{ member.first_name }} {{ member.last_name }}</strong>
+                    </div>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
             <div class="list-group" ng-if="current_contact.peer_type == 'chat'">
                 <div class="group list-group-item">
                     <div class="pull-right btn-group btn-group-xs">

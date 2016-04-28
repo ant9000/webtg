@@ -16,7 +16,7 @@ webtgControllers.controller('MainCtrl', [
     $scope.self = {};
     $scope.conversations = [];
     $scope.current_conversation = {};
-    $scope.newmessage = {to: '', content: ''};
+    $scope.newmessage = {to: '', content: '', contact: null};
     $scope.contacts = [];
     $scope.current_contact = {};
     $scope.page_length = 25;
@@ -46,7 +46,7 @@ webtgControllers.controller('MainCtrl', [
       $scope.conversations = data.contents;
       $scope.validateCurrentConversation();
       var chats = [];
-      angular.forEach(data.contents, function(v,k){ if(v.peer_type=='chat'){ this.push(v); } }, chats);
+      angular.forEach(data.contents, function(v,k){ if((v.peer_type=='chat')||(v.peer_type=='channel')){ this.push(v); } }, chats);
       $scope.setContacts(chats);
       $scope.validateCurrentContact();
     });
@@ -103,11 +103,18 @@ webtgControllers.controller('MainCtrl', [
       });
     };
     $scope.sendMessage = function(){
-      socket.send({
-        event: 'telegram.msg',
-        args:  [ $scope.newmessage.to, $scope.newmessage.content ],
-      });
-      $scope.newmessage.content = '';
+      if($scope.newmessage.contact&&($scope.newmessage.contact.print_name!=$scope.newmessage.to)){
+        $scope.newmessage.contact = null;
+      }
+      if(!$scope.newmessage.contact || $scope.newmessage.contact.peer_type!='channel'){
+        socket.send({
+          event: 'telegram.msg',
+          args:  [ $scope.newmessage.to, $scope.newmessage.content ],
+        });
+        $scope.newmessage.content = '';
+      }else{
+        $log.log('TODO', $scope.newmessage);
+      }
     };
     $scope.contactsList = function(){
       socket.send({ 'event': 'telegram.contacts_list' });
@@ -121,11 +128,13 @@ webtgControllers.controller('MainCtrl', [
       }
       if(set_to!==false){
         $scope.newmessage.to = conversation.print_name;
+        $scope.newmessage.contact = conversation;
       }
     };
     $scope.clearConversation = function(){
       $scope.current_conversation = {};
       $scope.newmessage.to = '';
+      $scope.newmessage.contact = null;
     };
     $scope.validateCurrentConversation = function(){
       var conversation={};
@@ -166,7 +175,7 @@ webtgControllers.controller('MainCtrl', [
       var contactsIndex = {};
       angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, contactsIndex);
       angular.forEach(contacts, function(v,k){
-        if((v.peer_type=='chat')&&(v.admin)){
+        if((v.peer_type=='chat')){
           v.own = false;
           angular.forEach(v.members, function(vv,kk){
             if(vv.inviter&&(vv.inviter.peer_id===0)){
@@ -187,11 +196,13 @@ webtgControllers.controller('MainCtrl', [
       $scope.current_contact = contact;
       if(set_to!==false){
         $scope.newmessage.to = contact.print_name;
+        $scope.newmessage.contact = contact;
       }
     };
     $scope.clearContact = function(){
       $scope.current_contact = {};
       $scope.newmessage.to = '';
+      $scope.newmessage.contact = null;
     };
     $scope.validateCurrentContact = function(){
       var contact={};
@@ -223,6 +234,7 @@ webtgControllers.controller('ContactsCtrl', [
 
     $scope.messageTo = function(contact){
       $scope.newmessage.to = contact.print_name ? contact.print_name : contact.cmd;
+      $scope.newmessage.contact = contact;
       angular.element('#newmessage-content').focus();
     };
 
@@ -323,6 +335,13 @@ webtgControllers.controller('ContactsCtrl', [
       $scope.validateCurrentContact();
     };
 
+    $scope.editChannel = function(channel){
+      $log.log('[TODO] Edit channel: ', channel);
+    };
+
+    $scope.leaveChannel = function(channel){
+      $log.log('[TODO] Leave channel: ', channel);
+    };
   }
 ]);
 

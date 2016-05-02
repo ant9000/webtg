@@ -178,14 +178,21 @@ webtgControllers.controller('MainCtrl', [
       var contactsIndex = {};
       angular.forEach($scope.contacts, function(v,k){ this[v.id] = k; }, contactsIndex);
       angular.forEach(contacts, function(v,k){
-        if((v.peer_type=='chat')){
-          v.own = false;
-          angular.forEach(v.members, function(vv,kk){
-            if(vv.inviter&&(vv.inviter.peer_id===0)){
-              vv.admin=true;
-              if(vv.peer_id==$scope.self.peer_id){ v.own=true; }
+        switch(v.peer_type){
+          case 'chat':
+            v.own = false;
+            angular.forEach(v.members, function(vv,kk){
+              if(vv.inviter&&(vv.inviter.peer_id===0)){
+                vv.admin=true;
+                if(vv.peer_id==$scope.self.peer_id){ v.own=true; }
+              }
+            });
+            break;
+          case 'channel':
+            if(!v.members){
+              v.members = [ $scope.self ];
             }
-          });
+            break;
         }
         if(contactsIndex[v.id] === undefined){
           contactsIndex[v.id] = this.push.length;

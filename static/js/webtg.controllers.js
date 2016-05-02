@@ -329,11 +329,24 @@ webtgControllers.controller('ContactsCtrl', [
     };
 
     $scope.leaveGroup = function(contact){
-      $log.log('Leave group: ', contact);
-      socket.send({
-        event: 'telegram.chat_del_user',
-        args:  [ contact.print_name, $scope.self.print_name ],
-      });
+      $log.log('Leave '+contact.peer_type+': '+contact);
+      var cmd=null;
+      switch(contact.peer_type){
+        case 'chat': 
+            cmd = {
+              event: 'telegram.chat_del_user',
+              args:  [ contact.print_name, $scope.self.print_name ]
+            };
+            break;
+        case 'channel': 
+            cmd = {
+              event: 'telegram.channel_leave',
+              args:  [ contact.print_name ]
+            };
+            break;
+      }
+      if(!cmd){ return; }
+      socket.send(cmd);
       socket.send({
         event: 'telegram.raw',
         args:  [ 'delete_history '+contact.print_name ],
@@ -349,9 +362,7 @@ webtgControllers.controller('ContactsCtrl', [
       $log.log('[TODO] Edit channel: ', channel);
     };
 
-    $scope.leaveChannel = function(channel){
-      $log.log('[TODO] Leave channel: ', channel);
-    };
+    $scope.leaveChannel = $scope.leaveGroup;
   }
 ]);
 

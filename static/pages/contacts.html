@@ -1,7 +1,7 @@
 <div ng-controller="ContactsCtrl">
 
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-4" style="max-height:600px;overflow:auto;">
             <div class="list-group">
                 <div ng-repeat="contact in contacts"
                      class="contact list-group-item" ng-class="{ active: contact.id == current_contact.id }"

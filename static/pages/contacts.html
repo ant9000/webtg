@@ -3,7 +3,7 @@
     <div class="row">
         <div class="col-md-4" style="max-height:600px;overflow:auto;">
             <div class="list-group">
-                <div ng-repeat="contact in contacts"
+                <div ng-repeat="contact in contacts|orderBy:'print_name' track by contact.id"
                      class="contact list-group-item" ng-class="{ active: contact.id == current_contact.id }"
                      ng-click="setContact(contact)">
                   <div ng-if="contact.peer_type == 'user'">
@@ -41,7 +41,7 @@
                         <strong>{{ current_contact.title }}</strong>
                     </div>
                 </div>
-                <div ng-if="current_contact.members" ng-repeat="member in current_contact.members" class="group list-group-item">
+                <div ng-if="current_contact.members" ng-repeat="member in current_contact.members|orderBy:'print_name' track by member.id" class="group list-group-item">
                     <div ng-click="messageTo(member)">
                         <span class="glyphicon glyphicon-user" ng-class="{admin: member.admin}"></span>
                         <strong>{{ member.first_name }} {{ member.last_name }}</strong>
@@ -64,7 +64,7 @@
                         <strong>{{ current_contact.title }}</strong>
                     </div>
                 </div>
-                <div ng-if="current_contact.members" ng-repeat="member in current_contact.members" class="group list-group-item">
+                <div ng-if="current_contact.members" ng-repeat="member in current_contact.members|orderBy:'print_name' track by member.id" class="group list-group-item">
                     <div ng-click="messageTo(member)">
                         <span class="glyphicon glyphicon-user" ng-class="{admin: member.admin}"></span>
                         <strong>{{ member.first_name }} {{ member.last_name }}</strong>

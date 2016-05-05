@@ -3,8 +3,8 @@
 var webtgControllers = angular.module('webtgControllers', []);
 
 webtgControllers.controller('MainCtrl', [
-  '$scope', '$location', '$window', '$interval', 'socket', '$log',
-  function($scope, $location, $window, $interval, socket, $log){
+  '$scope', '$location', '$window', '$interval', 'socket', '$log', 'Upload',
+  function($scope, $location, $window, $interval, socket, $log, Upload){
     $scope.$location = $location;
 
     // debugging aids
@@ -225,6 +225,19 @@ webtgControllers.controller('MainCtrl', [
       }else{
         $scope.clearContact();
       }
+    };
+    $scope.uploadFile = function(to, file){
+        Upload.upload({
+            url: '/upload',
+            data: {'to': to, 'file': file}
+        }).then(function (resp) {
+            console.log('Success ' + resp.config.data.file.name + 'uploaded. Response: ' + resp.data);
+        }, function (resp) {
+            console.log('Error status: ' + resp.status);
+        }, function (evt) {
+            var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
+            console.log('progress: ' + progressPercentage + '% ' + evt.config.data.file.name);
+        });
     };
     // Start communication
     socket.start();

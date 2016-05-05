@@ -18,6 +18,8 @@
     <script src="/static/js/angular.min.js"></script>
     <script src="/static/js/angular-route.min.js"></script>
     <script src="/static/js/angular-sanitize.min.js"></script>
+    <script src="/static/js/ng-file-upload-shim.min.js"></script>
+    <script src="/static/js/ng-file-upload.min.js"></script>
     <script src="/static/js/ui-bootstrap-tpls-0.12.1.min.js"></script>
     <script src="/static/js/emojione.min.js"></script>
     <script>emojione.imagePathPNG='/static/img/emojione/';</script>
@@ -55,10 +57,17 @@
                     <input type="text" class="form-control" ng-model="newmessage.to" required="">
                   </div>
                   <div class="col-lg-9">
-                    <input type="text" class="form-control" id="newmessage-content" placeholder="content" ng-model="newmessage.content" required="" />
+                    <div class="input-group">
+                       <input type="text" class="form-control" id="newmessage-content" placeholder="content" ng-model="newmessage.content" required="" />
+                       <span class="input-group-btn">
+                         <button type="submit" class="btn btn-default pull-right" ng-disabled="!newmessage.to||!newmessage.content||(newmessage.contact&&newmessage.contact.peer_type=='channel'&&!newmessage.contact.own)">Send</button>
+                       </span>
+                    </div>
                   </div>
                   <div class="col-lg-1">
-                    <button type="submit" class="btn btn-default pull-right" ng-disabled="!newmessage.to||!newmessage.content||(newmessage.contact&&newmessage.contact.peer_type=='channel'&&!newmessage.contact.own)">Send</button>
+                    <button type="button" class="btn" ngf-select="uploadFile(newmessage.to,newmessage.file)" ng-model="newmessage.file" name="newmessage-file" ngf-max-size="10MB">
+                      <span class="glyphicon glyphicon-paperclip"></span>
+                    </button>
                   </div>
                 </form>
               </div>

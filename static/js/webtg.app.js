@@ -4,6 +4,7 @@ var webtg = angular.module('webTg', [
   'ngRoute',
   'ui.bootstrap',
   'ngSanitize',
+  'ngFileUpload',
   'webtgServices',
   'webtgControllers',
 ]);

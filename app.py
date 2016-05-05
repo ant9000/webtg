@@ -209,6 +209,18 @@ def send_static(filename):
     logger.info('%s: %s', filename, m)
     return bottle.static_file(filename, root=DOWNLOADS, mimetype=m)
 
+@bottle.post('/upload')
+def upload():
+    session = bottle.request.environ.get('beaker.session', {})
+    username = session.get('username', 'anonymous')
+    if username == 'anonymous' and \
+            bottle.request.remote_addr != '127.0.0.1':
+        bottle.abort(401, 'Unauthorized.')
+    peer = bottle.request.forms.get('to')
+    uploadedfile =  bottle.request.files.get('file')
+    # TODO: send file to telegram
+    logger.info('/upload %s %s', peer, uploadedfile.filename) 
+    return 'OK'
 
 @bottle.route('/websocket', apply=[websocket])
 def handle_websocket(ws):

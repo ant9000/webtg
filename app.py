@@ -217,10 +217,34 @@ def upload():
             bottle.request.remote_addr != '127.0.0.1':
         bottle.abort(401, 'Unauthorized.')
     peer = bottle.request.forms.get('to')
-    uploadedfile =  bottle.request.files.get('file')
-    # TODO: send file to telegram
-    logger.info('/upload %s %s', peer, uploadedfile.filename) 
-    return 'OK'
+    upfile = bottle.request.files.get('file')
+    caption = bottle.request.forms.get('caption') or ''
+    logger.info('/upload %s "%s" "%s"', peer, upfile.filename, caption)
+    name, ext = os.path.splitext(os.path.join(DOWNLOADS, upfile.filename))
+    fname = name+ext
+    while os.path.isfile(fname):
+        name += '_'
+        fname = name+ext
+    result = 'OK'
+    try:
+        upfile.save(fname)
+        m = mimetypes.guess_type(fname)[0] or ""
+        command = "send_file"
+        args = [peer, fname]
+        if m.startswith("image/"):
+            command = "send_photo"
+            args.append(caption)
+        elif m.startswith("audio/"):
+            command = "send_audio"
+        try:
+            getattr(tg.sender,command)(*args)
+        except Exception, e:
+            logger.error('error sending file: %s', e)
+            result = 'ERROR (send): %s' % e
+    except Exception, e:
+        logger.error('error saving file: %s', e)
+        result = 'ERROR (save): %s' % e
+    return result
 
 @bottle.route('/websocket', apply=[websocket])
 def handle_websocket(ws):

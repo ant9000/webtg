@@ -42,7 +42,7 @@
                         <span ng-if="!message.media.thumb" class="glyphicon"
                               ng-class="message.media.type=='webpage' ? 'glyphicon-link' : 'glyphicon-download'">
                         </span>
-                        <span ng-if="!message.media.thumb" ng-bind-html="message.media.caption || message.text || message.media.type"></span>
+                        <span ng-bind-html="message.media.caption || message.text || message.media.type"></span>
                       </a>
                       <span ng-if="!message.media.url">
                         <span ng-bind-html="message.text"></span>

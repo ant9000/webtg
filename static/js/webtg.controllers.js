@@ -226,15 +226,17 @@ webtgControllers.controller('MainCtrl', [
         $scope.clearContact();
       }
     };
-    $scope.uploadFile = function(to, file){
+    $scope.uploadFile = function($file){
+        if(!$file) return;
         Upload.upload({
             url: '/upload',
-            data: {'to': to, 'file': file}
-        }).then(function (resp) {
-            console.log('Success ' + resp.config.data.file.name + 'uploaded. Response: ' + resp.data);
-        }, function (resp) {
+            data: {to: $scope.newmessage.to, file: $file, caption: $scope.newmessage.content}
+        }).then(function(resp) {
+            $scope.newmessage.content = '';
+            console.log('Success "' + resp.config.data.file.name + '" uploaded. Response: ' + resp.data);
+        }, function(resp) {
             console.log('Error status: ' + resp.status);
-        }, function (evt) {
+        }, function(evt) {
             var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
             console.log('progress: ' + progressPercentage + '% ' + evt.config.data.file.name);
         });

@@ -65,7 +65,7 @@
                     </div>
                   </div>
                   <div class="col-lg-1">
-                    <button type="button" class="btn" ngf-select="uploadFile(newmessage.to,newmessage.file)" ng-model="newmessage.file" name="newmessage-file" ngf-max-size="10MB">
+                    <button type="button" class="btn" ngf-select="uploadFile($file)" ng-model="newmessage.file" name="newmessage-file" ngf-max-size="10MB" ng-disabled="!newmessage.to">
                       <span class="glyphicon glyphicon-paperclip"></span>
                     </button>
                   </div>

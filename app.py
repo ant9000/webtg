@@ -83,7 +83,7 @@ os.environ['TELEGRAM_HOME'] = here('')
 tg = Telegram(
     telegram=here('tg/bin/telegram-cli'),
     pubkey_file=here('tg/tg-server.pub'),
-    custom_cli_args=['-d', '-L', here('logs/telegram.log'), '-N'],
+    custom_cli_args=['-d', '-vvvv', '-L', here('logs/telegram.log'), '-N'],
 )
 
 def download_media(sender, msg_id, media_type):
@@ -98,7 +98,9 @@ def download_media(sender, msg_id, media_type):
         response = None
         try:
             response = getattr(sender,command)(msg_id)
-        except Exception, e:
+        except IllegalResponseException as e:
+            logger.warning(e)
+        except Exception as e:
             logger.exception('%s', e)
         if response:
             filepath = response

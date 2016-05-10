@@ -20,11 +20,10 @@ from DictObject import DictObject, DictObjectList
 from pytg import Telegram
 from pytg.receiver import Receiver
 from pytg.utils import coroutine
-from pytg.exceptions import ConnectionError
+from pytg.exceptions import ConnectionError, IllegalResponseException, NoResponse
 
 # we do not want exceptions for result_parser.something
 import pytg.result_parser
-from pytg.exceptions import IllegalResponseException
 pytg.result_parser.something = lambda x: x
 # end patch
 
@@ -45,7 +44,7 @@ try:
         raise NoOptionError('password', 'webpage')
     if admin_password == "admin":
         print "WARNING: please change the default web page credentials."
-except Exception, e:
+except Exception as e:
     print """
 ERROR: %s
 Check file "configuration.ini" and make sure the webpage
@@ -66,7 +65,7 @@ try:
         mailer = Mailer(email_from, email_server)
     else:
         print "WARNING: no email destination - smtp forwarding disabled."
-except Exception, e:
+except Exception as e:
     print """
 ERROR: %s
 Check file "configuration.ini" and make sure the email
@@ -129,7 +128,7 @@ def telegram():
                     except WebSocketError:
                         if ws in web_clients:
                             del web_clients[ws]
-        except Exception, e:
+        except Exception as e:
             logger.exception('message_listener: %s', e)
 
     while True:
@@ -138,7 +137,7 @@ def telegram():
             tg.receiver.message(message_listener(tg.sender))
             logger.error("telegram: connection lost.")
             tg.receiver.stop()
-        except Exception, e:
+        except Exception as e:
             logger.exception('telegram: %s', e)
         tg.receiver = Receiver()
 
@@ -336,7 +335,9 @@ def handle_websocket(ws):
                                 if msg.get('media',''):
                                     media = download_media(tg.sender, msg.id, msg.media.type)
                                     msg.media.update(media)
-                    except Exception, e:
+                    except NoResponse as e:
+                        logger.warning('%s', e)
+                    except Exception as e:
                         logger.exception('%s', e)
                 else:
                     logger.error("unknown command '%s'", command)

@@ -37,6 +37,7 @@
                       <div ng-if="!message.out && message.from.id != current_conversation.id" class="participant">
                         {{ message.from.first_name }} {{ message.from.last_name }}
                       </div>
+                      <span ng-if="message.media&&!message.media.complete" class="glyphicon glyphicon-hourglass">downloading...</span>
                       <a ng-if="message.media.url" href="{{ message.media.url }}" target="_blank">
                         <img ng-if="message.media.thumb" ng-src="{{ message.media.thumb }}" title="{{ message.media.caption }}"/>
                         <span ng-if="!message.media.thumb" class="glyphicon"

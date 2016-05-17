@@ -111,6 +111,24 @@ def download_media(sender, msg_id, media_type):
                 data[field] = filepath
     return data
 
+def history_download_media(ws, data, response):
+    logger.info('history_download_media %s', str(data.args))
+    try:
+        for msg in reversed(response['contents']):
+            if msg.get('media',''):
+                media = download_media(tg.sender, msg.id, msg.media.type)
+                msg.media.update(media)
+                msg.media.complete = True
+                msg.event = 'telegram.message'
+                msg.sender = msg.get('from')
+                msg.receiver = msg.to
+                msg.own = msg.out
+                if not msg.get('peer'):
+                    msg.peer = msg.own and msg.receiver or msg.sender
+                ws.send(json.dumps(msg))
+    except WebSocketError:
+        pass
+
 def telegram():
     @coroutine
     def message_listener(sender):
@@ -121,6 +139,7 @@ def telegram():
                 if msg.event == 'telegram.message' and msg.get('media',''):
                     media = download_media(sender, msg.id, msg.media.type)
                     msg.media.update(media)
+                    msg.media.complete = True
                 logger.info(msg)
                 for ws in web_clients.keys():
                     try:
@@ -331,10 +350,14 @@ def handle_websocket(ws):
                                     except IllegalResponseException:
                                         pass
                         elif command == 'history':
-                            for msg in response['contents']:
-                                if msg.get('media',''):
-                                    media = download_media(tg.sender, msg.id, msg.media.type)
-                                    msg.media.update(media)
+                            if response.get('contents'):
+                                has_media = False
+                                for msg in response['contents']:
+                                    if msg.get('media',''):
+                                        has_media = True 
+                                        msg.media.complete = False
+                                if has_media:
+                                    threading.Thread(target=history_download_media, args=(ws, data, response)).start()
                     except NoResponse as e:
                         logger.warning('%s', e)
                     except Exception as e:

@@ -163,12 +163,15 @@ webtgControllers.controller('MainCtrl', [
       var trackDuplicates = {};
       angular.forEach(c.messages, function(v,k){ this[v.id] = k; }, trackDuplicates);
       angular.forEach(messages, function(v,k){
-        if(trackDuplicates[v.id] === undefined){
+        if(v.date > c.last_timestamp){ c.last_timestamp = v.date; }
+        if(v.text){ v.text = emojione.toImage(v.text); }
+        if(v.media && v.media.caption){ v.media.caption = emojione.toImage(v.media.caption); }
+        var idx=trackDuplicates[v.id];
+        if(idx === undefined){
           trackDuplicates[v.id] = this.push.length;
-          if(v.date > c.last_timestamp){ c.last_timestamp = v.date; }
-          if(v.text){ v.text = emojione.toImage(v.text); }
-          if(v.media && v.media.caption){ v.media.caption = emojione.toImage(v.media.caption); }
           this.push(v);
+        }else{
+          _.extend(this[idx],v);
         }
       }, c.messages);
       if(messages.length < $scope.page_length){ c.all_read = true; }

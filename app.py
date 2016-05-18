@@ -111,23 +111,37 @@ def download_media(sender, msg_id, media_type):
                 data[field] = filepath
     return data
 
+
+web_clients = {}
+def protected_ws_send(ws,msg):
+    if ws in web_clients:
+        lock = web_clients[ws]['lock']
+    else:
+        logger.error('Client disconnected.')
+        return
+    try:
+        lock.acquire(True)
+        ws.send(json.dumps(msg))
+        lock.release()
+    except WebSocketError:
+        if ws in web_clients:
+            del web_clients[ws]
+
+
 def history_download_media(ws, data, response):
     logger.info('history_download_media %s', str(data.args))
-    try:
-        for msg in reversed(response['contents']):
-            if msg.get('media',''):
-                media = download_media(tg.sender, msg.id, msg.media.type)
-                msg.media.update(media)
-                msg.media.complete = True
-                msg.event = 'telegram.message'
-                msg.sender = msg.get('from')
-                msg.receiver = msg.to
-                msg.own = msg.out
-                if not msg.get('peer'):
-                    msg.peer = msg.own and msg.receiver or msg.sender
-                ws.send(json.dumps(msg))
-    except WebSocketError:
-        pass
+    for msg in reversed(response['contents']):
+        if msg.get('media',''):
+            media = download_media(tg.sender, msg.id, msg.media.type)
+            msg.media.update(media)
+            msg.media.complete = True
+            msg.event = 'telegram.message'
+            msg.sender = msg.get('from')
+            msg.receiver = msg.to
+            msg.own = msg.out
+            if not msg.get('peer'):
+                msg.peer = msg.own and msg.receiver or msg.sender
+            protected_ws_send(ws,msg)
 
 def telegram():
     @coroutine
@@ -142,11 +156,7 @@ def telegram():
                     msg.media.complete = True
                 logger.info(msg)
                 for ws in web_clients.keys():
-                    try:
-                        ws.send(json.dumps(msg))
-                    except WebSocketError:
-                        if ws in web_clients:
-                            del web_clients[ws]
+                    protected_ws_send(ws,msg)
         except Exception as e:
             logger.exception('message_listener: %s', e)
 
@@ -166,7 +176,6 @@ session_opts = {
     'session.auto': True,
 }
 app = SessionMiddleware(bottle.app(), session_opts)
-web_clients = {}
 
 
 @bottle.route('/')
@@ -283,17 +292,18 @@ def handle_websocket(ws):
     }
     if username != 'anonymous' or \
             bottle.request.remote_addr == '127.0.0.1':
-        web_clients[ws] = username
+        web_clients[ws] = { 'username': username, 'lock': threading.Lock() }
         response = {
             'event':    "session.state",
             'result':   "SUCCESS",
             'status':   "connected",
             'username': username,
         }
-    ws.send(json.dumps(response))
-
-    if response["result"] == "FAIL":
+        protected_ws_send(ws, response)
+    else:
+        ws.send(json.dumps(response))
         bottle.abort(401, 'Unauthorized.')
+        return
 
     while True:
         try:
@@ -373,7 +383,7 @@ def handle_websocket(ws):
                     response.args = data.args
                 if data.get('extra'):
                     response.extra = data.extra
-                ws.send(json.dumps(response))
+                protected_ws_send(ws,response)
 
         except WebSocketError:
             if ws in web_clients:

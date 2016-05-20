@@ -97,7 +97,7 @@ def download_media(sender, msg_id, media_type):
         response = None
         try:
             response = getattr(sender,command)(msg_id)
-        except IllegalResponseException as e:
+        except (IllegalResponseException, NoResponse) as e:
             logger.warning(e)
         except Exception as e:
             logger.exception('%s', e)
@@ -117,7 +117,7 @@ def protected_ws_send(ws,msg):
     if ws in web_clients:
         lock = web_clients[ws]['lock']
     else:
-        logger.error('Client disconnected.')
+        logger.info('Client disconnected.')
         return
     try:
         lock.acquire(True)
